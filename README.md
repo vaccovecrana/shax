@@ -14,6 +14,8 @@ Pull the following dependency into your project:
 
 ```io.vacco.shax:shax:1.7.30.1```
 
+All `shax` releases align to the `slf4j` api version they were compiled against.
+
 Make sure to exclude other SLF4J binding in your classpath, otherwise `slf4j` will complain.
 
 Pass in the following `System` or `Environment` properties to configure:
