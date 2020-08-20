@@ -1,41 +1,44 @@
 package io.vacco.shax.logging;
 
+import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class ShLogRecord {
+public final class ShLogRecord {
 
-  public String utc;
-  public long utcMs;
+  public enum ShLrField {
+    utc, utcMs, thread, message, logName, logLevel, stackTrace
+  }
 
-  public String thread;
-  public String message;
-  public String logName;
+  public static String toString(Throwable t) {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    t.printStackTrace(pw);
+    return sw.toString();
+  }
 
-  public ShLogLevel logLevel;
-
-  public Map<String, Object> ext;
-  public Throwable error;
-
-  public static ShLogRecord from(String message, String logName,
-                                 ShLogLevel logLevel, Throwable t,
-                                 ShArgument ... args) {
+  public static Map<String, Object> from(ShLogConfig config, String message, String logName,
+                                         ShLogLevel logLevel, Throwable t, ShArgument... args) {
     ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
-    ShLogRecord r = new ShLogRecord();
+    Map<String, Object> r = new LinkedHashMap<>();
 
-    r.utc = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(nowUtc);
-    r.utcMs = nowUtc.toInstant().toEpochMilli();
-    r.thread = Thread.currentThread().getName();
-    r.message = Objects.requireNonNull(message);
-    r.logName = Objects.requireNonNull(logName);
-    r.logLevel = Objects.requireNonNull(logLevel);
-    r.error = t; // TODO serialize error to stack trace string perhaps?
+    if (config.showDateTime) {
+      r.put(ShLrField.utc.name(), DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(nowUtc));
+      r.put(ShLrField.utcMs.name(), nowUtc.toInstant().toEpochMilli());
+    }
 
+    r.put(ShLrField.thread.name(), Thread.currentThread().getName());
+    r.put(ShLrField.message.name(), Objects.requireNonNull(message));
+    r.put(ShLrField.logName.name(), Objects.requireNonNull(logName));
+    r.put(ShLrField.logLevel.name(), Objects.requireNonNull(logLevel));
+
+    if (t != null) {
+      r.put(ShLrField.stackTrace.name(), toString(t));
+    }
     if (args != null) {
-      r.ext = new TreeMap<>();
       for (ShArgument arg : args) {
-        r.ext.put(arg.key, arg.value);
+        r.put(arg.key, arg.value);
       }
     }
 

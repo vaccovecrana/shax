@@ -16,8 +16,8 @@ public class ShJsonSpec {
     describe("Object traversal", () ->
         it("can extract object values from an input", () -> {
           MyPojo p = MyPojo.getInstance();
-          System.out.println(new ShObjectWriter().apply(p, true, true));
-          System.out.println(new ShObjectWriter().apply(p, false, false));
+          System.out.println(new ShObjectWriter(true, true).apply(p));
+          System.out.println(new ShObjectWriter(false, false).apply(p));
         })
     );
   }

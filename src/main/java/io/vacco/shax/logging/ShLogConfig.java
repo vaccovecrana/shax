@@ -3,25 +3,28 @@ package io.vacco.shax.logging;
 import io.vacco.shax.json.ShObjectWriter;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class ShLogConfig {
 
   public ShLogLevel defaultLogLevel;
   public Map<String, ShLogLevel> logLevels = new HashMap<>();
 
+  public boolean showDateTime = true;
   public boolean prettyPrint = false;
 
-  private static String loadProp(ShOption o) {
+  private static <T> T loadProp(ShOption o, Function<String, T> onLoad) {
     String v = System.getenv(o.name());
     if (v == null) v = System.getProperty(o.asSysProp());
-    return v;
+    return onLoad.apply(v);
   }
 
   public static ShLogConfig load() {
     ShLogConfig c = new ShLogConfig();
 
-    c.defaultLogLevel = ShLogLevel.fromString(loadProp(ShOption.IO_VACCO_SHAX_LOG_LEVEL));
-    c.prettyPrint = Boolean.parseBoolean(loadProp(ShOption.IO_VACCO_SHAX_PRETTY_PRINT));
+    c.showDateTime = loadProp(ShOption.IO_VACCO_SHAX_SHOW_DATE_TIME, v -> v == null || Boolean.parseBoolean(v));
+    c.defaultLogLevel = loadProp(ShOption.IO_VACCO_SHAX_LOG_LEVEL, ShLogLevel::fromString);
+    c.prettyPrint = loadProp(ShOption.IO_VACCO_SHAX_PRETTY_PRINT, Boolean::parseBoolean);
 
     System.getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {
@@ -45,6 +48,6 @@ public class ShLogConfig {
 
   @Override
   public String toString() {
-    return "ShLogConfig " + new ShObjectWriter().apply(this, true, false);
+    return "ShLogConfig " + new ShObjectWriter(false, true).apply(this);
   }
 }

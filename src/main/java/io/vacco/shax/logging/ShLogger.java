@@ -2,8 +2,7 @@ package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
 import org.slf4j.helpers.*;
-
-import java.util.Arrays;
+import java.util.*;
 
 import static io.vacco.shax.logging.ShLogLevel.*;
 
@@ -45,8 +44,8 @@ public class ShLogger extends MarkerIgnoringBase {
     ShArgument[] kvArgs = Arrays.stream(tp.getArgArray() != null ? tp.getArgArray() : new Object[]{})
         .filter(o -> o instanceof ShArgument)
         .toArray(ShArgument[]::new);
-    ShLogRecord r = ShLogRecord.from(tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
-    String json = new ShObjectWriter().apply(r, logConfig.prettyPrint, true);
+    Map<String, Object> r = ShLogRecord.from(logConfig, tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
+    String json = new ShObjectWriter(true, logConfig.prettyPrint).apply(r);
     System.err.println(json);
     System.err.flush();
   }

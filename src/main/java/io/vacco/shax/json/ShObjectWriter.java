@@ -17,6 +17,14 @@ public class ShObjectWriter extends ShObjectScanner {
   // TODO de-init thread local upon JVM shutdown
   private static final ThreadLocal<WeakHashMap<Class<?>, ShRefMeta>> classMeta = ThreadLocal.withInitial(WeakHashMap::new);
 
+  private final boolean omitNullValues;
+  private final boolean prettyPrint;
+
+  public ShObjectWriter(boolean omitNullValues, boolean prettyPrint) {
+    this.omitNullValues = omitNullValues;
+    this.prettyPrint = prettyPrint;
+  }
+
   private String getAccessorName(String fieldName) {
     String fName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     return String.format("get%s", fName);
@@ -68,17 +76,20 @@ public class ShObjectWriter extends ShObjectScanner {
     } catch (Exception e) { throw new IllegalStateException(e); }
   }
 
-  private ShJsonValue fromCollection(Object o, boolean omitNullValues) {
+  private ShJsonValue fromCollection(Object o) {
     if (o instanceof List) {
-      return new ShJsonArray().add(((List<?>) o).stream().map(o1 -> fromObject(o1, omitNullValues)));
+      return new ShJsonArray().add(((List<?>) o).stream().map(this::fromObject));
     }
     if (o instanceof Set) {
-      return new ShJsonArray().add(((Set<?>) o).stream().map(o1 -> fromObject(o1, omitNullValues)));
+      return new ShJsonArray().add(((Set<?>) o).stream().map(this::fromObject));
+    }
+    if (o instanceof Object[]) {
+      return new ShJsonArray().add(Arrays.stream(((Object[]) o)).map(this::fromObject));
     }
     if (o instanceof Map) {
       ShJsonObject mo = new ShJsonObject();
       ((Map<?, ?>) o).forEach((k, v) -> {
-        ShJsonValue jv = fromObject(v, omitNullValues);
+        ShJsonValue jv = fromObject(v);
         if (jv != null) {
           mo.set(k.toString(), jv);
         }
@@ -88,16 +99,16 @@ public class ShObjectWriter extends ShObjectScanner {
     throw new IllegalStateException(String.format("Not a collection type: [%s]", o));
   }
 
-  private ShJsonValue fromObject(Object o, boolean omitNullValues) {
+  private ShJsonValue fromObject(Object o) {
     if (mark(o) == null) return null;
     if (isBaseType(o)) {
-      return isCollection(o) ? fromCollection(o, omitNullValues) : fromValue(o);
+      return isCollection(o) ? fromCollection(o) : fromValue(o);
     }
     ShJsonObject root = new ShJsonObject();
     Map<String, ?> rawVals = rawValuesOf(o);
     for (String k : rawVals.keySet()) {
       Object v = rawVals.get(k);
-      ShJsonValue jv = fromObject(v, omitNullValues);
+      ShJsonValue jv = fromObject(v);
       if (jv == null) {
         if (!omitNullValues) {
           root.set(k, ShJsonLiteral.NULL);
@@ -109,12 +120,12 @@ public class ShObjectWriter extends ShObjectScanner {
     return root;
   }
 
-  public String apply(Object o, boolean pretty, boolean omitNullValues) {
+  public String apply(Object o) {
     StringWriter sw = new StringWriter();
     ShWritingBuffer wb = new ShWritingBuffer(sw);
-    ShJsonWriter w = pretty ? new ShPrettyPrintWriter(wb, new char[] {' ', ' '}) : new ShJsonWriter(wb);
+    ShJsonWriter w = prettyPrint ? new ShPrettyPrintWriter(wb, new char[] {' ', ' '}) : new ShJsonWriter(wb);
     try {
-      ShJsonValue jv = fromObject(o, omitNullValues);
+      ShJsonValue jv = fromObject(o);
       if (jv != null) {
         jv.write(w);
         wb.flush();
