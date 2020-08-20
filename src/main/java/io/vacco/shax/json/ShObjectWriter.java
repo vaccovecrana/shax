@@ -79,14 +79,11 @@ public class ShObjectWriter extends ShObjectScanner {
   private ShJsonValue fromCollection(Object o) {
     if (o instanceof List) {
       return new ShJsonArray().add(((List<?>) o).stream().map(this::fromObject));
-    }
-    if (o instanceof Set) {
+    } else if (o instanceof Set) {
       return new ShJsonArray().add(((Set<?>) o).stream().map(this::fromObject));
-    }
-    if (o instanceof Object[]) {
+    } else if (o instanceof Object[]) {
       return new ShJsonArray().add(Arrays.stream(((Object[]) o)).map(this::fromObject));
-    }
-    if (o instanceof Map) {
+    } else if (o instanceof Map) {
       ShJsonObject mo = new ShJsonObject();
       ((Map<?, ?>) o).forEach((k, v) -> {
         ShJsonValue jv = fromObject(v);

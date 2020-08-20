@@ -12,6 +12,7 @@ public class MyPojo {
   public List<Integer> foos;
   public Map<String, Long> longs;
   public Set<String> cats;
+  public String[] tags;
 
   private MyPojoNumbers numbers;
   public MyPojoNumbers noNumbers = null;
@@ -37,6 +38,8 @@ public class MyPojo {
 
     p.setNumbers(MyPojoNumbers.getInstance());
     p.cats = cats;
+
+    p.tags = new String [] {"blog", "style", "living"};
 
     p.momo = true;
     p.moop = false;
