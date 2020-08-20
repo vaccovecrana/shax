@@ -16,9 +16,9 @@ public class ShLoggingSpec {
   static {
     describe("SLF4J Binding", () -> {
       it("Can load configuration from the environment and system properties", () -> {
-        System.setProperty(ShOption.IO_VACCO_SHAX_SHOW_DATE_TIME.asSysProp(), "true");
-        System.setProperty(ShOption.IO_VACCO_SHAX_LOG_LEVEL.asSysProp(), "trace");
-        System.setProperty(ShOption.IO_VACCO_SHAX_PRETTY_PRINT.asSysProp(), "true");
+        System.setProperty(ShOption.IO_VACCO_SHAX_SHOWDATETIME.asSysProp(), "true");
+        System.setProperty(ShOption.IO_VACCO_SHAX_LOGLEVEL.asSysProp(), "trace");
+        System.setProperty(ShOption.IO_VACCO_SHAX_PRETTYPRINT.asSysProp(), "true");
 
         String logNameProp = String.format("%s.%s", ShOption.IO_VACCO_SHAX_LOGGER.asSysProp(), "io.vacco.shax.test");
         System.setProperty(logNameProp, ShLogLevel.TRACE.name());

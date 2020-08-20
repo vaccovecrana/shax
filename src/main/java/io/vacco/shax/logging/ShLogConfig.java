@@ -22,9 +22,9 @@ public class ShLogConfig {
   public static ShLogConfig load() {
     ShLogConfig c = new ShLogConfig();
 
-    c.showDateTime = loadProp(ShOption.IO_VACCO_SHAX_SHOW_DATE_TIME, v -> v == null || Boolean.parseBoolean(v));
-    c.defaultLogLevel = loadProp(ShOption.IO_VACCO_SHAX_LOG_LEVEL, ShLogLevel::fromString);
-    c.prettyPrint = loadProp(ShOption.IO_VACCO_SHAX_PRETTY_PRINT, Boolean::parseBoolean);
+    c.showDateTime = loadProp(ShOption.IO_VACCO_SHAX_SHOWDATETIME, v -> v == null || Boolean.parseBoolean(v));
+    c.defaultLogLevel = loadProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, ShLogLevel::fromString);
+    c.prettyPrint = loadProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, Boolean::parseBoolean);
 
     System.getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {
