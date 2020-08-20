@@ -27,13 +27,8 @@ public class ShJsonWriter {
     this.writer = writer;
   }
 
-  protected void writeLiteral(String value) throws IOException {
-    writer.write(value);
-  }
-
-  protected void writeNumber(String string) throws IOException {
-    writer.write(string);
-  }
+  protected void writeLiteral(String value) throws IOException { writer.write(value); }
+  protected void writeNumber(String string) throws IOException { writer.write(string); }
 
   protected void writeString(String string) throws IOException {
     writer.write('"');
@@ -41,39 +36,20 @@ public class ShJsonWriter {
     writer.write('"');
   }
 
-  protected void writeArrayOpen() throws IOException {
-    writer.write('[');
-  }
+  protected void writeArrayOpen() throws IOException { writer.write('['); }
+  protected void writeArrayClose() throws IOException { writer.write(']'); }
+  protected void writeArraySeparator() throws IOException { writer.write(','); }
 
-  protected void writeArrayClose() throws IOException {
-    writer.write(']');
-  }
-
-  protected void writeArraySeparator() throws IOException {
-    writer.write(',');
-  }
-
-  protected void writeObjectOpen() throws IOException {
-    writer.write('{');
-  }
-
-  protected void writeObjectClose() throws IOException {
-    writer.write('}');
-  }
+  protected void writeObjectOpen() throws IOException { writer.write('{'); }
+  protected void writeObjectClose() throws IOException { writer.write('}'); }
+  protected void writeObjectSeparator() throws IOException { writer.write(','); }
 
   protected void writeMemberName(String name) throws IOException {
     writer.write('"');
     writeJsonString(name);
     writer.write('"');
   }
-
-  protected void writeMemberSeparator() throws IOException {
-    writer.write(':');
-  }
-
-  protected void writeObjectSeparator() throws IOException {
-    writer.write(',');
-  }
+  protected void writeMemberSeparator() throws IOException { writer.write(':'); }
 
   protected void writeJsonString(String string) throws IOException {
     int length = string.length();
@@ -109,5 +85,4 @@ public class ShJsonWriter {
     if (ch == '\t') { return TAB_CHARS; }
     return new char[]{'\\', 'u', '0', '0', HEX_DIGITS[ch >> 4 & 0x000f], HEX_DIGITS[ch & 0x000f]};
   }
-
 }

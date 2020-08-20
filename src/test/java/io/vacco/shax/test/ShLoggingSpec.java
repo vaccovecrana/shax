@@ -36,7 +36,7 @@ public class ShLoggingSpec {
           if (log.isTraceEnabled()) {
             log.trace("This is a TRACE message");
             log.trace("This is a TRACE message with format: [{}]", 1);
-            log.trace("This is a TRACE message with two arguments: [{}, {}]", 1, 2);
+            log.trace("This is a TRACE message with two arguments: [{}, {}]", 1, null);
             log.trace("This is a TRACE message with no data, no format");
             log.trace("This is a TRACE message with format and multiple arguments: [{}, {}, {}, {}]", 1, 2, 3, 4);
             log.trace("This is a TRACE message with error data", x);
@@ -55,7 +55,7 @@ public class ShLoggingSpec {
             log.info("This is an INFO message");
             log.info("This is an INFO message with format: [{}]", 1);
             log.info("This is an INFO message with two arguments: [{}, {}]", 1, 2);
-            log.info("This is an INFO message with object data, and no format.", kv("test", p));
+            log.info("This is an INFO message with no object data, and no format.", kv("test", null));
             log.info("This is an INFO message with object data and format: {}", kv("test", p));
             log.info("This is an INFO message with format and multiple arguments: [{}, {}, {}, {}]", 1, 2, 3, 4);
             log.info("This is an INFO message with error data", x);
