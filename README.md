@@ -10,7 +10,7 @@ backend implementation.
 
 ## Getting started
 
-Pull the following dependency into your project:
+Pull the following dependency into your project (currently only available in JCenter):
 
 ```io.vacco.shax:shax:1.7.30.1```
 
