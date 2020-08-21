@@ -2,7 +2,7 @@ plugins { `java-library`; jacoco; `maven-publish` }
 repositories { jcenter() }
 
 group = "io.vacco.shax"
-version = "1.7.30.1"
+version = "1.7.30.0.0.1"
 
 java {
   withJavadocJar()
@@ -14,6 +14,12 @@ java {
 dependencies {
   implementation("org.slf4j:slf4j-api:1.7.30")
   testImplementation("io.github.j8spec:j8spec:3.0.0")
+}
+
+tasks.withType<Test> {
+  this.testLogging {
+    this.showStandardStreams = true
+  }
 }
 
 object Publishing {

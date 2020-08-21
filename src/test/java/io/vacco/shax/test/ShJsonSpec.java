@@ -11,8 +11,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import static j8spec.J8Spec.describe;
-import static j8spec.J8Spec.it;
+import static j8spec.J8Spec.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)

@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.function.Function;
 
 import static io.vacco.shax.logging.ShLogLevel.*;
+import static io.vacco.shax.logging.ShColor.*;
+import static java.lang.String.format;
 
 public class ShLogger extends MarkerIgnoringBase {
 
@@ -24,7 +26,8 @@ public class ShLogger extends MarkerIgnoringBase {
 
   protected static void init() {
     logConfig = ShLogConfig.load();
-    System.err.printf("Shax! %s%n", new ShObjectWriter(false, true).apply(logConfig));
+    System.err.println(magentaBoldBright("Shax!"));
+    System.err.println(new ShObjectWriter(false, true).apply(logConfig));
   }
 
   protected ShLogger(String name) {
@@ -56,12 +59,13 @@ public class ShLogger extends MarkerIgnoringBase {
     }
     if (logConfig.devMode) {
       Long utcMs = (Long) r.get(ShLogRecord.ShLrField.utc_ms.name());
-      String out = String.format("%s %s(%s): %s",
-          r.get(ShLogRecord.ShLrField.level.name()),
-          logConfig.showDateTime ? String.format(
-              "[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs
-          ) : "",
-          r.get(ShLogRecord.ShLrField.thread_name.name()),
+      String out = format("%s %s%s %s",
+          ofLevel(level),
+          logConfig.showDateTime ?
+              blackBoldBright(
+                  format("[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs)
+              ) : "",
+          bluePale(format("(%s)", r.get(ShLogRecord.ShLrField.thread_name.name()).toString())),
           r.get(ShLogRecord.ShLrField.message.name())
       );
       System.err.println(out);
@@ -96,13 +100,13 @@ public class ShLogger extends MarkerIgnoringBase {
       ShLogger l = (ShLogger) log;
       if (l.recordTransformer != null) {
         throw new IllegalArgumentException(
-            String.format("logger already defines a transform function: [%s]", l.recordTransformer)
+            format("logger already defines a transform function: [%s]", l.recordTransformer)
         );
       }
       l.recordTransformer = fn;
       return l;
     }
-    throw new IllegalArgumentException(String.format("Not a shax logger: [%s]", log));
+    throw new IllegalArgumentException(format("Not a shax logger: [%s]", log));
   }
 
   public boolean isTraceEnabled() { return isLevelEnabled(TRACE); }
