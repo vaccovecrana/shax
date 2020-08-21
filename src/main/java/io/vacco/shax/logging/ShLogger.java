@@ -1,8 +1,10 @@
 package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
+import org.slf4j.Logger;
 import org.slf4j.helpers.*;
 import java.util.*;
+import java.util.function.Function;
 
 import static io.vacco.shax.logging.ShLogLevel.*;
 
@@ -10,7 +12,9 @@ public class ShLogger extends MarkerIgnoringBase {
 
   private static boolean initialized = false;
   private static ShLogConfig logConfig;
+
   protected ShLogLevel currentLogLevel;
+  protected Function<ShLogRecord, ShLogRecord> recordTransformer;
 
   protected static void lazyInit() {
     if (initialized) { return; }
@@ -20,6 +24,7 @@ public class ShLogger extends MarkerIgnoringBase {
 
   protected static void init() {
     logConfig = ShLogConfig.load();
+    System.err.printf("Shax! %s%n", new ShObjectWriter(false, true).apply(logConfig));
   }
 
   protected ShLogger(String name) {
@@ -34,19 +39,39 @@ public class ShLogger extends MarkerIgnoringBase {
       indexOfLastDot = tempName.lastIndexOf(".");
     }
 
-    this.currentLogLevel = level == null ? ShLogLevel.INFO : level;
+    this.currentLogLevel = level == null ? logConfig.defaultLogLevel : level;
   }
 
   private void log(ShLogLevel level, FormattingTuple tp) {
     if (!isLevelEnabled(level)) {
       return;
     }
+
     ShArgument[] kvArgs = Arrays.stream(tp.getArgArray() != null ? tp.getArgArray() : new Object[]{})
-        .filter(o -> o instanceof ShArgument)
-        .toArray(ShArgument[]::new);
-    Map<String, Object> r = ShLogRecord.from(logConfig, tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
-    String json = new ShObjectWriter(true, logConfig.prettyPrint).apply(r);
-    System.err.println(json);
+        .filter(o -> o instanceof ShArgument).toArray(ShArgument[]::new);
+    ShLogRecord r = ShLogRecord.from(logConfig, tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
+
+    if (this.recordTransformer != null) {
+      r = this.recordTransformer.apply(r);
+    }
+    if (logConfig.devMode) {
+      Long utcMs = (Long) r.get(ShLogRecord.ShLrField.utc_ms.name());
+      String out = String.format("%s %s(%s): %s",
+          r.get(ShLogRecord.ShLrField.level.name()),
+          logConfig.showDateTime ? String.format(
+              "[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs
+          ) : "",
+          r.get(ShLogRecord.ShLrField.thread_name.name()),
+          r.get(ShLogRecord.ShLrField.message.name())
+      );
+      System.err.println(out);
+      for (ShArgument kvArg : kvArgs) {
+        System.err.println(new ShObjectWriter(true, logConfig.prettyPrint).apply(kvArg.value));
+      }
+    } else {
+      String json = new ShObjectWriter(true, logConfig.prettyPrint).apply(r);
+      System.err.println(json);
+    }
     System.err.flush();
   }
 
@@ -62,6 +87,22 @@ public class ShLogger extends MarkerIgnoringBase {
 
   protected boolean isLevelEnabled(ShLogLevel logLevel) {
     return (logLevel.getRawLevel() >= currentLogLevel.getRawLevel());
+  }
+
+  public static Logger withTransformer(Logger log, Function<ShLogRecord, ShLogRecord> fn) {
+    Objects.requireNonNull(log);
+    Objects.requireNonNull(fn);
+    if (log instanceof ShLogger) {
+      ShLogger l = (ShLogger) log;
+      if (l.recordTransformer != null) {
+        throw new IllegalArgumentException(
+            String.format("logger already defines a transform function: [%s]", l.recordTransformer)
+        );
+      }
+      l.recordTransformer = fn;
+      return l;
+    }
+    throw new IllegalArgumentException(String.format("Not a shax logger: [%s]", log));
   }
 
   public boolean isTraceEnabled() { return isLevelEnabled(TRACE); }

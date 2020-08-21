@@ -5,10 +5,11 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public final class ShLogRecord {
+public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
   public enum ShLrField {
-    utc, utcMs, thread, message, logName, logLevel, stackTrace
+    utc, utc_ms, thread_name, message,
+    logger_name, level, level_value, stack_trace
   }
 
   public static String toString(Throwable t) {
@@ -18,23 +19,24 @@ public final class ShLogRecord {
     return sw.toString();
   }
 
-  public static Map<String, Object> from(ShLogConfig config, String message, String logName,
+  public static ShLogRecord from(ShLogConfig config, String message, String logName,
                                          ShLogLevel logLevel, Throwable t, ShArgument... args) {
     ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
-    Map<String, Object> r = new LinkedHashMap<>();
+    ShLogRecord r = new ShLogRecord();
 
     if (config.showDateTime) {
       r.put(ShLrField.utc.name(), DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(nowUtc));
-      r.put(ShLrField.utcMs.name(), nowUtc.toInstant().toEpochMilli());
+      r.put(ShLrField.utc_ms.name(), nowUtc.toInstant().toEpochMilli());
     }
 
-    r.put(ShLrField.thread.name(), Thread.currentThread().getName());
+    r.put(ShLrField.level.name(), Objects.requireNonNull(logLevel));
+    r.put(ShLrField.level_value.name(), logLevel.getRawLevel());
+    r.put(ShLrField.logger_name.name(), Objects.requireNonNull(logName));
+    r.put(ShLrField.thread_name.name(), Thread.currentThread().getName());
     r.put(ShLrField.message.name(), Objects.requireNonNull(message));
-    r.put(ShLrField.logName.name(), Objects.requireNonNull(logName));
-    r.put(ShLrField.logLevel.name(), Objects.requireNonNull(logLevel));
 
     if (t != null) {
-      r.put(ShLrField.stackTrace.name(), toString(t));
+      r.put(ShLrField.stack_trace.name(), toString(t));
     }
     if (args != null) {
       for (ShArgument arg : args) {

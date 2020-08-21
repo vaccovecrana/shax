@@ -12,6 +12,7 @@ public class ShLogConfig {
 
   public boolean showDateTime = true;
   public boolean prettyPrint = false;
+  public boolean devMode = false;
 
   private static <T> T loadProp(ShOption o, Function<String, T> onLoad) {
     String v = System.getenv(o.name());
@@ -25,6 +26,7 @@ public class ShLogConfig {
     c.showDateTime = loadProp(ShOption.IO_VACCO_SHAX_SHOWDATETIME, v -> v == null || Boolean.parseBoolean(v));
     c.defaultLogLevel = loadProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, ShLogLevel::fromString);
     c.prettyPrint = loadProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, Boolean::parseBoolean);
+    c.devMode = loadProp(ShOption.IO_VACCO_SHAX_DEVMODE, Boolean::parseBoolean);
 
     System.getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {

@@ -2,6 +2,7 @@ package io.vacco.shax.logging;
 
 public enum ShOption {
 
+  IO_VACCO_SHAX_DEVMODE,
   IO_VACCO_SHAX_SHOWDATETIME,
   IO_VACCO_SHAX_LOGLEVEL,
   IO_VACCO_SHAX_PRETTYPRINT,

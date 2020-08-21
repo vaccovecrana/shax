@@ -97,7 +97,9 @@ public class ShObjectWriter extends ShObjectScanner {
   }
 
   private ShJsonValue fromObject(Object o) {
-    if (mark(o) == null) return null;
+    if (mark(o) == null) {
+      return null;
+    }
     if (isBaseType(o)) {
       return isCollection(o) ? fromCollection(o) : fromValue(o);
     }
@@ -129,6 +131,8 @@ public class ShObjectWriter extends ShObjectScanner {
         wb.close();
       }
       return sw.toString();
-    } catch (Exception x) { throw new IllegalStateException(x); }
+    } catch (Exception x) {
+      throw new IllegalStateException(x);
+    }
   }
 }
