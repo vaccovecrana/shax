@@ -72,6 +72,9 @@ public class ShLogger extends MarkerIgnoringBase {
       for (ShArgument kvArg : kvArgs) {
         System.err.println(new ShObjectWriter(true, logConfig.prettyPrint).apply(kvArg.value));
       }
+      if (tp.getThrowable() != null) {
+        tp.getThrowable().printStackTrace(System.err);
+      }
     } else {
       String json = new ShObjectWriter(true, logConfig.prettyPrint).apply(r);
       System.err.println(json);

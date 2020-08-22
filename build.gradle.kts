@@ -2,7 +2,7 @@ plugins { `java-library`; jacoco; `maven-publish` }
 repositories { jcenter() }
 
 group = "io.vacco.shax"
-version = "1.7.30.0.0.1"
+version = "1.7.30.0.0.2"
 
 java {
   withJavadocJar()
