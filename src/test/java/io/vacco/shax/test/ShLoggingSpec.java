@@ -4,12 +4,10 @@ import io.vacco.shax.logging.*;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.*;
+import java.util.*;
 
-import java.util.Map;
-import java.util.TreeMap;
-
+import static io.vacco.shax.logging.ShOption.*;
 import static io.vacco.shax.logging.ShArgument.kv;
 import static j8spec.J8Spec.*;
 
@@ -19,13 +17,11 @@ public class ShLoggingSpec {
   static {
     describe("SLF4J Binding", () -> {
       it("Can load configuration from the environment and system properties", () -> {
-        System.setProperty(ShOption.IO_VACCO_SHAX_SHOWDATETIME.asSysProp(), "true");
-        System.setProperty(ShOption.IO_VACCO_SHAX_LOGLEVEL.asSysProp(), "trace");
-        System.setProperty(ShOption.IO_VACCO_SHAX_PRETTYPRINT.asSysProp(), "true");
-        System.setProperty(ShOption.IO_VACCO_SHAX_DEVMODE.asSysProp(), "true");
-
-        String logNameProp = String.format("%s.%s", ShOption.IO_VACCO_SHAX_LOGGER.asSysProp(), "io.vacco.shax.test");
-        System.setProperty(logNameProp, ShLogLevel.TRACE.name());
+        setSysProp(IO_VACCO_SHAX_SHOWDATETIME, "true");
+        setSysProp(IO_VACCO_SHAX_LOGLEVEL, "trace");
+        setSysProp(IO_VACCO_SHAX_PRETTYPRINT, "true");
+        setSysProp(IO_VACCO_SHAX_DEVMODE, "true");
+        setLoggerSysProp("io.vacco.shax.test", ShLogLevel.TRACE);
 
         ShLogConfig c = ShLogConfig.load();
         System.out.println(c);

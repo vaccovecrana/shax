@@ -43,8 +43,8 @@ public class ShObjectWriter extends ShObjectScanner {
       meta = new ShRefMeta();
       while (cN != null) {
         for (Field field : cN.getDeclaredFields()) {
-          field.setAccessible(true);
           if (Modifier.isPublic(field.getModifiers())) {
+            field.setAccessible(true);
             meta.fields.add(field);
           } else {
             try {
