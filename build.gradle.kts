@@ -1,15 +1,9 @@
-buildscript {
-  repositories {
-    jcenter(); gradlePluginPortal()
-    maven { name = "VaccoOss"; setUrl("https://dl.bintray.com/vaccovecrana/vacco-oss") }
-  }
-  dependencies { classpath("io.vacco:common-build-gradle-plugin:0.5.0") }
+plugins {
+  id("io.vacco.common-build") version "0.5.1"
 }
 
-apply{plugin(io.vacco.common.CbPlugin::class.java)}
-
 group = "io.vacco.shax"
-version = "1.7.30.0.0.5"
+version = "1.7.30.0.0.6"
 
 configure<io.vacco.common.CbPluginProfileExtension> {
   addJ8Spec()
@@ -25,7 +19,17 @@ configure<JavaPluginExtension> {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-val implementation by configurations
 dependencies {
-  implementation("org.slf4j:slf4j-api:1.7.30")
+  api("org.slf4j:slf4j-api:1.7.30")
 }
+
+/*
+tasks.withType<Test> {
+  extensions.configure(JacocoTaskExtension::class) {
+    output = JacocoTaskExtension.Output.TCP_CLIENT
+    address = "localhost"
+    port = 6300
+    sessionId = "test"
+  }
+}
+*/

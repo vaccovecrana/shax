@@ -44,6 +44,8 @@ public class ShLoggingSpec {
         MyPojo p = MyPojo.getInstance();
         Exception x = new IllegalStateException("oops");
 
+        log.info("{}", kv("arrayWithNulls", new Integer[] {1, 2, null, 4, null, 5}));
+
         log.info("Let's see some cats and owners");
 
         Map<String, String> catOwners = new TreeMap<>();

@@ -18,7 +18,11 @@ public class ShJsonArray extends ShJsonValue {
     writer.writeArrayOpen();
     for (int k = 0; k < values.size(); k++) {
       ShJsonValue v = values.get(k);
-      v.write(writer);
+      if (v != null) {
+        v.write(writer);
+      } else {
+        ShJsonLiteral.NULL.write(writer);
+      }
       if (k < values.size() - 1) {
         writer.writeArraySeparator();
       }
