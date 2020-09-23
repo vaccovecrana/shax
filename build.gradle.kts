@@ -19,8 +19,10 @@ configure<JavaPluginExtension> {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+val api by configurations
+
 dependencies {
-  implementation("org.slf4j:slf4j-api:1.7.30")
+  api("org.slf4j:slf4j-api:1.7.30")
 }
 
 /*
