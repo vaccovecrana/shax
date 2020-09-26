@@ -12,7 +12,9 @@ backend implementation.
 
 Pull the following dependency into your project (currently only available in JCenter):
 
-```io.vacco.shax:shax:1.7.30.1```
+[![Download](https://api.bintray.com/packages/vaccovecrana/vacco-oss/shax/images/download.svg) ](https://bintray.com/vaccovecrana/vacco-oss/shax/_latestVersion)
+
+```io.vacco.shax:shax:<VERSION>```
 
 > Note: All `shax` releases align to the `slf4j-api` version they were compiled against. Make sure to exclude
 > other SLF4J bindings in your classpath, otherwise `slf4j` will complain.
