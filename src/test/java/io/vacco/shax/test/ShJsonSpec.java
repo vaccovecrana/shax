@@ -42,7 +42,16 @@ public class ShJsonSpec {
         foos.put("two", "2");
         foos.put("three", 3);
         foos.put("four", new Object[] {4});
+        foos.put("five", new double[] {0.0, 2.0, 3.1415});
         System.out.println(w.apply(foos));
+
+        System.out.println(w.apply(new boolean[] {true, false, true}));
+        System.out.println(w.apply(new int[]   {0, 1, 2, 3, 4, 5, 6}));
+        System.out.println(w.apply(new char[]  {'a', 'b', 'c', 'd', 'e'}));
+        System.out.println(w.apply(new long[]  {0, 1, 2, 3, 4, 5, 6}));
+        System.out.println(w.apply(new float[] {0, 1, 2, 3, 4, 5, 6}));
+        System.out.println(w.apply(new short[] {0, 1, 2, 3, 4, 5, 6}));
+        System.out.println(w.apply(new byte[]  {0, 1, 2, 3, 4, 5, 6}));
       });
       it("can extract object values from an input", () -> {
         MyPojo p = MyPojo.getInstance();

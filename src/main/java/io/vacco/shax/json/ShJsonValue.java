@@ -3,7 +3,7 @@ package io.vacco.shax.json;
 import java.io.IOException;
 import java.io.Serializable;
 
-import static io.vacco.shax.json.ShReflectionUtil.*;
+import static io.vacco.shax.json.ShReflect.*;
 import static io.vacco.shax.json.ShJsonLiteral.*;
 
 public abstract class ShJsonValue implements Serializable {
@@ -24,8 +24,7 @@ public abstract class ShJsonValue implements Serializable {
     if (isBoolean(o)) return ((Boolean) o) ? TRUE : FALSE;
     if (isTextual(o) || isEnum(o)) return new ShJsonString(o.toString());
     if (isInteger(o)) {
-      if (o instanceof Integer) return new ShJsonNumber(Integer.toString((Integer) o, 10));
-      return new ShJsonNumber(Long.toString((Long) o, 10));
+      return new ShJsonNumber(o.toString());
     }
 
     if (isRational(o)) {

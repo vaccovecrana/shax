@@ -4,7 +4,7 @@ import java.io.StringWriter;
 import java.lang.reflect.*;
 import java.util.*;
 
-import static io.vacco.shax.json.ShReflectionUtil.*;
+import static io.vacco.shax.json.ShReflect.*;
 import static io.vacco.shax.json.ShJsonValue.*;
 
 public class ShObjectWriter extends ShObjectScanner {
@@ -82,8 +82,6 @@ public class ShObjectWriter extends ShObjectScanner {
       return new ShJsonArray().add(((List<?>) o).stream().map(this::fromObject));
     } else if (o instanceof Set) {
       return new ShJsonArray().add(((Set<?>) o).stream().map(this::fromObject));
-    } else if (o instanceof Object[]) {
-      return new ShJsonArray().add(Arrays.stream(((Object[]) o)).map(this::fromObject));
     } else if (o instanceof Map) {
       ShJsonObject mo = new ShJsonObject();
       ((Map<?, ?>) o).forEach((k, v) -> {
@@ -94,7 +92,8 @@ public class ShObjectWriter extends ShObjectScanner {
       });
       return mo;
     }
-    throw new IllegalStateException(String.format("Not a collection type: [%s]", o));
+    Object[] oa = wrap(o);
+    return new ShJsonArray().add(Arrays.stream(oa).map(this::fromObject));
   }
 
   private ShJsonValue fromObject(Object o) {

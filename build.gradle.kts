@@ -1,15 +1,12 @@
-plugins { id("io.vacco.common-build") version "0.5.3" }
+plugins { id("io.vacco.oss.gitflow") version "0.9.8" }
 
 group = "io.vacco.shax"
-version = "1.7.30.0.0.6"
+version = "1.7.30.0.0.7"
 
-configure<io.vacco.common.CbPluginProfileExtension> {
+configure<io.vacco.oss.gitflow.GsPluginProfileExtension> {
   addJ8Spec()
-  addPmd()
-  addSpotBugs()
   addClasspathHell()
-  setPublishingUrlTransform { repo -> "${repo.url}/${project.name}" }
-  sharedLibrary()
+  sharedLibrary(true, false)
 }
 
 configure<JavaPluginExtension> {
