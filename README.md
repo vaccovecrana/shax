@@ -10,11 +10,9 @@ backend implementation.
 
 ## Getting started
 
-Pull the following dependency into your project (currently only available in JCenter):
+Pull the following dependency into your project (available in Maven Central):
 
-[![Download](https://api.bintray.com/packages/vaccovecrana/vacco-oss/shax/images/download.svg) ](https://bintray.com/vaccovecrana/vacco-oss/shax/_latestVersion)
-
-```io.vacco.shax:shax:<VERSION>```
+    implementation("io.vacco.shax:shax:<VERSION>")
 
 > Note: All `shax` releases align to the `slf4j-api` version they were compiled against.
 > Make sure to exclude other SLF4J bindings in your class path, otherwise `slf4j` will complain.
@@ -149,7 +147,7 @@ Pass in the following `Environment` or `System`  properties to configure:
 
 ## Caveats
 
-Again, `shax` is opinionated. It will:
+`shax` is opinionated. It will:
 
 - Output only to `stderr`, no Files or TCP/UDP forwarding. So plug your favorite log forwarding agent at the process level to capture log output.
 - Display time:
