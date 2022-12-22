@@ -132,7 +132,12 @@ public class ShObjectWriter extends ShObjectScanner {
       }
       return sw.toString();
     } catch (Exception x) {
-      throw new IllegalStateException(x);
+      return String.join("\n",
+        "JSON serialization failed for object payload.",
+        "Please report an upstream bug at https://github.com/vaccovecrana/shax/issues",
+        String.format("Payload: [%s]", o),
+        x.getMessage()
+      );
     }
   }
 }
