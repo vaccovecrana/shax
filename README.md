@@ -10,7 +10,7 @@ backend implementation.
 
 ## Getting started
 
-Pull the following dependency into your project (available in Maven Central):
+Pull the following dependency into your project (available in [Maven Central](https://mvnrepository.com/artifact/io.vacco.shax/shax)):
 
     implementation("io.vacco.shax:shax:<VERSION>")
 
