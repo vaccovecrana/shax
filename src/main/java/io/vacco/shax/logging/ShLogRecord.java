@@ -8,7 +8,7 @@ import java.util.*;
 public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
   public enum ShLrField {
-    utc, utc_ms, thread_name, message,
+    environment, utc, utc_ms, thread_name, message,
     logger_name, level, level_value, stack_trace
   }
 
@@ -20,9 +20,13 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
   }
 
   public static ShLogRecord from(ShLogConfig config, String message, String logName,
-                                         ShLogLevel logLevel, Throwable t, ShArgument... args) {
+                                 ShLogLevel logLevel, Throwable t, ShArgument... args) {
     ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
     ShLogRecord r = new ShLogRecord();
+
+    if (config.environment != null) {
+      r.put(ShLrField.environment.name(), config.environment);
+    }
 
     if (config.showDateTime) {
       r.put(ShLrField.utc.name(), DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(nowUtc));

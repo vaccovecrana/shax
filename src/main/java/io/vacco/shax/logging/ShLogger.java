@@ -5,6 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.helpers.*;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 import static io.vacco.shax.logging.ShLogLevel.*;
 import static io.vacco.shax.logging.ShColor.*;
@@ -18,6 +22,8 @@ public class ShLogger extends MarkerIgnoringBase {
   protected ShLogLevel currentLogLevel;
   protected Function<ShLogRecord, ShLogRecord> recordTransformer;
 
+  private final ShObjectWriter objectWriter;
+
   protected static void lazyInit() {
     if (initialized) { return; }
     initialized = true;
@@ -28,6 +34,19 @@ public class ShLogger extends MarkerIgnoringBase {
     logConfig = ShLogConfig.load();
     System.err.println(magentaBoldBright("Shax!"));
     System.err.println(new ShObjectWriter(false, true).apply(logConfig));
+    if (logConfig.julOutput) {
+      java.util.logging.Logger rl = java.util.logging.Logger.getLogger("");
+      Level rll = ShLogLevel.julLevelOf(logConfig.defaultLogLevel);
+      rl.setLevel(rll);
+      for (Handler hdl : rl.getHandlers()) {
+        hdl.setLevel(rll);
+        hdl.setFormatter(new Formatter() {
+          @Override public String format(LogRecord record) {
+            return record.getMessage() + System.lineSeparator();
+          }
+        });
+      }
+    }
   }
 
   protected ShLogger(String name) {
@@ -43,6 +62,27 @@ public class ShLogger extends MarkerIgnoringBase {
     }
 
     this.currentLogLevel = level == null ? logConfig.defaultLogLevel : level;
+    this.objectWriter = new ShObjectWriter(true, logConfig.prettyPrint);
+  }
+
+  private void doPrint(String data, ShLogRecord r) {
+    if (!logConfig.julOutput) {
+      System.err.println(data);
+    } else {
+      String loggerName = (String) r.get(ShLogRecord.ShLrField.logger_name.name());
+      java.util.logging.Logger jl = java.util.logging.Logger.getLogger(loggerName);
+      Level jll = ShLogLevel.julLevelOf(currentLogLevel);
+      if (jl.getLevel() == null || !jl.getLevel().equals(jll)) {
+        jl.setLevel(jll);
+      }
+      jl.log(jll, data);
+    }
+  }
+
+  private void doFlush() {
+    if (!logConfig.julOutput) {
+      System.err.flush();
+    }
   }
 
   private void log(ShLogLevel level, FormattingTuple tp) {
@@ -60,7 +100,7 @@ public class ShLogger extends MarkerIgnoringBase {
     if (logConfig.devMode) {
       Long utcMs = (Long) r.get(ShLogRecord.ShLrField.utc_ms.name());
       String out = format("%s %s%s %s",
-          ofLevel(level),
+          labelFor(level),
           logConfig.showDateTime ?
               blackBoldBright(
                   format("[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs)
@@ -68,18 +108,18 @@ public class ShLogger extends MarkerIgnoringBase {
           bluePale(format("(%s)", r.get(ShLogRecord.ShLrField.thread_name.name()).toString())),
           r.get(ShLogRecord.ShLrField.message.name())
       );
-      System.err.println(out);
+      doPrint(out, r);
       for (ShArgument kvArg : kvArgs) {
-        System.err.println(new ShObjectWriter(true, logConfig.prettyPrint).apply(kvArg.value));
+        doPrint(objectWriter.apply(kvArg.value), r);
       }
       if (tp.getThrowable() != null) {
         tp.getThrowable().printStackTrace(System.err);
       }
     } else {
-      String json = new ShObjectWriter(true, logConfig.prettyPrint).apply(r);
-      System.err.println(json);
+      String json = objectWriter.apply(r);
+      doPrint(json, r);
     }
-    System.err.flush();
+    doFlush();
   }
 
   private void formatAndLog(ShLogLevel level, String format, Object arg1, Object arg2) {

@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.*;
 import java.util.*;
 
+import static io.vacco.shax.json.ShMaps.*;
 import static io.vacco.shax.logging.ShOption.*;
 import static io.vacco.shax.logging.ShArgument.kv;
 import static j8spec.J8Spec.*;
@@ -21,6 +22,8 @@ public class ShLoggingSpec {
         setSysProp(IO_VACCO_SHAX_LOGLEVEL, "trace");
         setSysProp(IO_VACCO_SHAX_PRETTYPRINT, "true");
         setSysProp(IO_VACCO_SHAX_DEVMODE, "true");
+        setSysProp(IO_VACCO_SHAX_JULOUTPUT, "true");
+        setSysProp(IO_VACCO_SHAX_ENVIRONMENT, "test");
         setLoggerSysProp("io.vacco.shax.test", ShLogLevel.TRACE);
 
         ShLogConfig c = ShLogConfig.load();
@@ -48,11 +51,12 @@ public class ShLoggingSpec {
 
         log.info("Let's see some cats and owners");
 
-        Map<String, String> catOwners = new TreeMap<>();
-        catOwners.put("Garfield", "Jon");
-        catOwners.put("Arlene", "Jon");
-        catOwners.put("Azrael", "Gargamel");
-        catOwners.put("Chi", "Youhei");
+        Map<String, String> catOwners = map(
+          e("Garfield", "Jon"),
+          e("Arlene", "Jon"),
+          e("Azrael", "Gargamel"),
+          e("Chi", "Youhei")
+        );
         log.info("Cats and Owners [{}]", kv("catOwners", catOwners));
 
         if (log.isTraceEnabled()) {

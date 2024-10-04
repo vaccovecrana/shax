@@ -138,6 +138,7 @@ Neat!
 Pass in the following `Environment` or `System`  properties to configure:
 
 - `IO_VACCO_SHAX_DEVMODE` or `io.vacco.shax.devmode` to display messages like [pino-pretty](https://github.com/pinojs/pino-pretty) would. Defaults to `false`.
+- `IO_VACCO_SHAX_JULOUTPUT` or `io.vacco.shax.juloutput` to log messages using JUL as a log sink (primarily so that OTLP collectors can capture output without changes).
 - `IO_VACCO_SHAX_SHOWDATETIME` or `io.vacco.shax.showdatetime` to display or hide UTC times. Defaults to `true`.
 - `IO_VACCO_SHAX_LOGLEVEL` or `io.vacco.shax.loglevel` to set the root logger level. Defaults to `INFO`.
 - `IO_VACCO_SHAX_PRETTYPRINT` or `io.vacco.shax.prettyprint`, `true` to output formatted JSON, `false` to output a single line. Defaults to `false`.
@@ -149,7 +150,7 @@ Pass in the following `Environment` or `System`  properties to configure:
 
 `shax` is opinionated. It will:
 
-- Output only to `stderr`, no Files or TCP/UDP forwarding. So plug your favorite log forwarding agent at the process level to capture log output.
+- Output only to `stderr` or JUL, no Files or TCP/UDP forwarding. So plug your favorite log forwarding agent at the process level to capture log output.
 - Display time:
   - In the UTC timezone only (the entire planet lives there).
   - As `ISO-8601` extended offset date-time format.
@@ -166,10 +167,4 @@ If you use log record transformer functions in your code, be aware that:
 
 - Only a single transformer can be assigned once per `Logger` instance. Reassignments will result in errors.
 - In `dev` mode, the only mandatory fields you must preserve in your record transformer are: `[level, thread_name, message]`.
-- Any transformer function *may* be stateless and *must* be thread-safe, since many threads will be calling your code.
-
-## Disclaimer
-
-> This project is not production ready, and still requires security and code correctness audits.
-> You use this software at your own risk. Vaccove Crana, LLC., its affiliates and subsidiaries
-> waive any and all liability for any damages caused to you by your usage of this software.
+- Any transformer function *MAY* be stateless and *MUST* be thread-safe, since many threads will be calling your code.
