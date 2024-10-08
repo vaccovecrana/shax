@@ -7,6 +7,8 @@ import java.util.*;
 
 public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
+  public transient Throwable throwable;
+
   public enum ShLrField {
     environment, utc, utc_ms, thread_name, message,
     logger_name, level, level_value, stack_trace
@@ -40,6 +42,7 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
     r.put(ShLrField.message.name(), Objects.requireNonNull(message));
 
     if (t != null) {
+      r.throwable = t;
       r.put(ShLrField.stack_trace.name(), toString(t));
     }
     if (args != null) {

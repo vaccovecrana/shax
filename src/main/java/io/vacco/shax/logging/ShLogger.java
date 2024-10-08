@@ -69,13 +69,23 @@ public class ShLogger extends MarkerIgnoringBase {
     if (!logConfig.julOutput) {
       System.err.println(data);
     } else {
+      LogRecord lr = new LogRecord(
+        ShLogLevel.julLevelOf(
+          (ShLogLevel) r.get(ShLogRecord.ShLrField.level.name())
+        ), data
+      );
+      lr.setLoggerName(this.name);
+      if (r.throwable != null) {
+        lr.setThrown(r.throwable);
+      }
+
       String loggerName = (String) r.get(ShLogRecord.ShLrField.logger_name.name());
       java.util.logging.Logger jl = java.util.logging.Logger.getLogger(loggerName);
-      Level jll = ShLogLevel.julLevelOf(currentLogLevel);
-      if (jl.getLevel() == null || !jl.getLevel().equals(jll)) {
-        jl.setLevel(jll);
+      Level jlLevel = ShLogLevel.julLevelOf(currentLogLevel);
+      if (jl.getLevel() == null || !jl.getLevel().equals(jlLevel)) {
+        jl.setLevel(jlLevel);
       }
-      jl.log(jll, data);
+      jl.log(lr);
     }
   }
 
