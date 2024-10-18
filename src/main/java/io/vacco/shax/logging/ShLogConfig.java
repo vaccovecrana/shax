@@ -1,12 +1,15 @@
 package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
+import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
 
 public class ShLogConfig {
 
   public String environment;
+  public URI    otUrl;
+
   public ShLogLevel defaultLogLevel;
   public Map<String, ShLogLevel> logLevels = new HashMap<>();
 
@@ -24,6 +27,7 @@ public class ShLogConfig {
   public static ShLogConfig load() {
     ShLogConfig c = new ShLogConfig();
 
+    c.otUrl = loadProp(ShOption.IO_VACCO_SHAX_OTELURL, URI::create);
     c.environment = loadProp(ShOption.IO_VACCO_SHAX_ENVIRONMENT, v -> v == null ? "dev" : v);
     c.showDateTime = loadProp(ShOption.IO_VACCO_SHAX_SHOWDATETIME, v -> v == null || Boolean.parseBoolean(v));
     c.defaultLogLevel = loadProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, ShLogLevel::fromString);
@@ -33,7 +37,8 @@ public class ShLogConfig {
 
     System.getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {
-        String logName = k.replace(ShOption.IO_VACCO_SHAX_LOGGER.name(), "")
+        String logName = k
+            .replace(ShOption.IO_VACCO_SHAX_LOGGER.name(), "")
             .substring(1).toLowerCase().replace("_", ".");
         c.logLevels.put(logName, ShLogLevel.fromString(v));
       }

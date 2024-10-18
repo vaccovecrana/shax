@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 public enum ShOption {
 
+  IO_VACCO_SHAX_OTELURL,
   IO_VACCO_SHAX_ENVIRONMENT,
   IO_VACCO_SHAX_DEVMODE,
   IO_VACCO_SHAX_JULOUTPUT,
