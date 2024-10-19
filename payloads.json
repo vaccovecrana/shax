@@ -1,0 +1,78 @@
+[
+  {
+    "resourceLogs": [
+      {
+        "resource": {
+          "attributes": [
+            { "key": "service.name", "value": { "stringValue": "my-service" } }
+          ]
+        },
+        "scopeLogs": [
+          {
+            "scope": {
+              "name": "my-logger",
+              "version": "1.0.0"
+            },
+            "logRecords": [
+              {
+                "timeUnixNano": "1639459200000000000",
+                "severityNumber": 9,
+                "severityText": "Info",
+                "body": { "stringValue": "Application started successfully" },
+                "attributes": [
+                  { "key": "thread.id", "value": { "intValue": 1 } }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "resourceSpans": [
+      {
+        "resource": {
+          "attributes": [
+            {
+              "key": "service.name",
+              "value": { "stringValue": "iot-api-server" }
+            }
+          ]
+        },
+        "scopeSpans": [
+          {
+            "scope": {
+              "name": "com.example.iot",
+              "version": "1.0.0"
+            },
+            "spans": [
+              {
+                "traceId": "a3f48d7f8f674f3eb6d8c1d8e3f4a8b1",
+                "spanId": "e3f4a8b1c2d3e4f5",
+                "parentSpanId": "0000000000000000",
+                "name": "Receive Audio Data",
+                "kind": "SPAN_KIND_SERVER",
+                "startTimeUnixNano": "1697457600000000000",
+                "endTimeUnixNano": "1697457601000000000",
+                "attributes": [
+                  {
+                    "key": "device.id",
+                    "value": { "stringValue": "device-5678" }
+                  },
+                  {
+                    "key": "audio.length",
+                    "value": { "intValue": 1024 }
+                  }
+                ],
+                "status": {
+                  "code": "STATUS_CODE_OK"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
