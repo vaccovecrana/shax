@@ -22,8 +22,6 @@ public class ShLoggingSpec {
         setSysProp(IO_VACCO_SHAX_LOGLEVEL, "trace");
         setSysProp(IO_VACCO_SHAX_PRETTYPRINT, "true");
         setSysProp(IO_VACCO_SHAX_DEVMODE, "true");
-        setSysProp(IO_VACCO_SHAX_JULOUTPUT, "true");
-        setSysProp(IO_VACCO_SHAX_ENVIRONMENT, "test");
         setLoggerSysProp("io.vacco.shax.test", ShLogLevel.TRACE);
 
         ShLogConfig c = ShLogConfig.load();

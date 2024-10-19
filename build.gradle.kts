@@ -1,17 +1,12 @@
 plugins { id("io.vacco.oss.gitflow") version "1.0.1" }
 
 group = "io.vacco.shax"
-version = "2.0.16.0.1.2"
+version = "2.0.16.0.2.0"
 
 configure<io.vacco.oss.gitflow.GsPluginProfileExtension> {
   addJ8Spec()
   addClasspathHell()
   sharedLibrary(true, false)
-}
-
-configure<JavaPluginExtension> {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 val api by configurations

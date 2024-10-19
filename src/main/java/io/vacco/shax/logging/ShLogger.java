@@ -34,19 +34,6 @@ public class ShLogger extends MarkerIgnoringBase {
     logConfig = ShLogConfig.load();
     System.err.println(magentaBoldBright("Shax!"));
     System.err.println(new ShObjectWriter(false, true).apply(logConfig));
-    if (logConfig.julOutput) {
-      java.util.logging.Logger rl = java.util.logging.Logger.getLogger("");
-      Level rll = ShLogLevel.julLevelOf(logConfig.defaultLogLevel);
-      rl.setLevel(rll);
-      for (Handler hdl : rl.getHandlers()) {
-        hdl.setLevel(rll);
-        hdl.setFormatter(new Formatter() {
-          @Override public String format(LogRecord record) {
-            return record.getMessage() + System.lineSeparator();
-          }
-        });
-      }
-    }
   }
 
   protected ShLogger(String name) {
@@ -66,33 +53,11 @@ public class ShLogger extends MarkerIgnoringBase {
   }
 
   private void doPrint(String data, ShLogRecord r) {
-    if (!logConfig.julOutput) {
-      System.err.println(data);
-    } else {
-      LogRecord lr = new LogRecord(
-        ShLogLevel.julLevelOf(
-          (ShLogLevel) r.get(ShLogRecord.ShLrField.level.name())
-        ), data
-      );
-      lr.setLoggerName(this.name);
-      if (r.throwable != null) {
-        lr.setThrown(r.throwable);
-      }
-
-      String loggerName = (String) r.get(ShLogRecord.ShLrField.logger_name.name());
-      java.util.logging.Logger jl = java.util.logging.Logger.getLogger(loggerName);
-      Level jlLevel = ShLogLevel.julLevelOf(currentLogLevel);
-      if (jl.getLevel() == null || !jl.getLevel().equals(jlLevel)) {
-        jl.setLevel(jlLevel);
-      }
-      jl.log(lr);
-    }
+    System.err.println(data);
   }
 
   private void doFlush() {
-    if (!logConfig.julOutput) {
-      System.err.flush();
-    }
+    System.err.flush();
   }
 
   private void log(ShLogLevel level, FormattingTuple tp) {
