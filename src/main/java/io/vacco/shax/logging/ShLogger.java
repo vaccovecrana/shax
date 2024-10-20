@@ -2,7 +2,6 @@ package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
 import io.vacco.shax.otel.OtContext;
-import io.vacco.shax.otel.OtLogRecord;
 import org.slf4j.Logger;
 import org.slf4j.helpers.*;
 import java.util.*;
@@ -86,7 +85,7 @@ public class ShLogger extends MarkerIgnoringBase {
     System.err.flush();
 
     if (OtContext.sink != null) {
-      OtContext.sink.accept(OtLogRecord.mapFrom(r));
+      OtContext.sink.accept(OtContext.mapFrom(r));
     }
   }
 

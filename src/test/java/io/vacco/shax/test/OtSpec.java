@@ -46,13 +46,13 @@ public class OtSpec {
     it("Creates log batches", () -> {
       var logBatch = otBatch()
         .resourceLog(
-          otResourceLog(otResource().att(att("service.name", "my-service")))
+          otResourceLog(otResource().att(att("service.name", val("my-service"))))
             .scopeLog(
               otScopeLog(otScope("my-logger", "1.0.0"))
                 .logRecord(
                   otLogRecord(nowNs(), "SEVERITY_NUMBER_INFO", "INFO")
                     .body(val("Application started successfully"))
-                    .att(att("thread.id", 1))
+                    .att(att("thread.id", val(null, null, 1, null, null, null)))
                 )
             )
         );
@@ -61,7 +61,7 @@ public class OtSpec {
     it("Creates trace batches", () -> {
       var traceBatch = otBatch()
         .resourceSpan(
-          otResourceSpan(otResource().att(att("service.name", "iot-api-server")))
+          otResourceSpan(otResource().att(att("service.name", val("iot-api-server"))))
             .scopeSpan(
               otScopeSpan(otScope("com.example.iot", "1.0.0"))
                 .span(
@@ -70,8 +70,8 @@ public class OtSpec {
                     .start(nowNs())
                     .end(nowNs())
                     .status(otStatus(OtStatusCode.STATUS_CODE_OK))
-                    .att(att("device.id", "device-5678"))
-                    .att(att("audio.length", 1024))
+                    .att(att("device.id", val("device-5678")))
+                    .att(att("audio.length", val(null, null, 1024, null, null, null)))
                 )
             )
         );
