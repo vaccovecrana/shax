@@ -6,6 +6,7 @@ import java.io.Serializable;
 import static io.vacco.shax.json.ShReflect.*;
 import static io.vacco.shax.json.ShJsonLiteral.*;
 
+@SuppressWarnings("serial")
 public abstract class ShJsonValue implements Serializable {
 
   private static final String numError = "Infinite and NaN values not permitted in JSON";

@@ -5,12 +5,13 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@SuppressWarnings("serial")
 public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
   public transient Throwable throwable;
 
   public enum ShLrField {
-    environment, utc, utc_ms, thread_name, message,
+    utc, utc_ms, thread_name, message,
     logger_name, level, level_value, stack_trace
   }
 
@@ -25,10 +26,6 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
                                  ShLogLevel logLevel, Throwable t, ShArgument... args) {
     ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
     ShLogRecord r = new ShLogRecord();
-
-    if (config.environment != null) {
-      r.put(ShLrField.environment.name(), config.environment);
-    }
 
     if (config.showDateTime) {
       r.put(ShLrField.utc.name(), DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(nowUtc));

@@ -5,10 +5,17 @@ import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
 
+import static java.lang.String.format;
+import static java.lang.System.*;
+import static java.net.URI.create;
+import static java.util.function.Function.identity;
+import static java.lang.Boolean.parseBoolean;
+
 public class ShLogConfig {
 
-  public String environment;
   public URI    otUrl;
+  public String otScopeName;
+  public String otScopeVersion;
 
   public ShLogLevel defaultLogLevel;
   public Map<String, ShLogLevel> logLevels = new HashMap<>();
@@ -18,34 +25,47 @@ public class ShLogConfig {
   public boolean devMode      = false;
 
   private static <T> T loadProp(ShOption o, Function<String, T> onLoad) {
-    String v = System.getenv(o.name());
+    var v = getenv(o.name());
     if (v == null) v = System.getProperty(o.asSysProp());
     return onLoad.apply(v);
   }
 
   public static ShLogConfig load() {
-    ShLogConfig c = new ShLogConfig();
+    var c = new ShLogConfig();
 
-    c.otUrl = loadProp(ShOption.IO_VACCO_SHAX_OTELURL, URI::create);
-    c.showDateTime = loadProp(ShOption.IO_VACCO_SHAX_SHOWDATETIME, v -> v == null || Boolean.parseBoolean(v));
+    c.showDateTime = loadProp(ShOption.IO_VACCO_SHAX_SHOWDATETIME, v -> v == null || parseBoolean(v));
     c.defaultLogLevel = loadProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, ShLogLevel::fromString);
     c.prettyPrint = loadProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, Boolean::parseBoolean);
     c.devMode = loadProp(ShOption.IO_VACCO_SHAX_DEVMODE, Boolean::parseBoolean);
 
-    System.getenv().forEach((k, v) -> {
+    c.otUrl = loadProp(ShOption.OTEL_COLLECTOR_URL, v -> v == null ? null : create(v));
+    c.otScopeName = loadProp(ShOption.OTEL_SCOPE_NAME, identity());
+    c.otScopeVersion = loadProp(ShOption.OTEL_SCOPE_VERSION, identity());
+
+    if (c.otUrl != null && (c.otScopeName == null || c.otScopeVersion == null)) {
+      throw new IllegalArgumentException(format(
+        "OTEL_COLLECTOR_URL environment property was configured as [%s], "
+          + "but no scope name or version has been defined. Please define "
+          + "OTEL_SCOPE_NAME and OTEL_SCOPE_VERSION.",
+        c.otUrl
+      ));
+    }
+
+    getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {
-        String logName = k
+        var logName = k
             .replace(ShOption.IO_VACCO_SHAX_LOGGER.name(), "")
             .substring(1).toLowerCase().replace("_", ".");
         c.logLevels.put(logName, ShLogLevel.fromString(v));
       }
     });
 
-    System.getProperties().forEach((k0, v0) -> {
-      String k = k0.toString().toLowerCase().trim();
+    getProperties().forEach((k0, v0) -> {
+      var k = k0.toString().toLowerCase().trim();
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.asSysProp())) {
-        String logName = k.replace(ShOption.IO_VACCO_SHAX_LOGGER.asSysProp(), "")
-            .substring(1);
+        var logName = k
+          .replace(ShOption.IO_VACCO_SHAX_LOGGER.asSysProp(), "")
+          .substring(1);
         c.logLevels.put(logName, ShLogLevel.fromString(v0.toString()));
       }
     });

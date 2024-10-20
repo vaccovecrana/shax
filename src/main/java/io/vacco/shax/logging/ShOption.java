@@ -4,12 +4,15 @@ import static java.util.Objects.requireNonNull;
 
 public enum ShOption {
 
-  IO_VACCO_SHAX_OTELURL,
   IO_VACCO_SHAX_DEVMODE,
   IO_VACCO_SHAX_SHOWDATETIME,
   IO_VACCO_SHAX_LOGLEVEL,
   IO_VACCO_SHAX_PRETTYPRINT,
-  IO_VACCO_SHAX_LOGGER;
+  IO_VACCO_SHAX_LOGGER,
+
+  OTEL_COLLECTOR_URL,
+  OTEL_SCOPE_NAME,
+  OTEL_SCOPE_VERSION;
 
   public String asSysProp() {
     return this.name().toLowerCase().replace("_", ".");

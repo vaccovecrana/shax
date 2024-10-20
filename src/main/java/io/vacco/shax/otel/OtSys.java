@@ -8,19 +8,19 @@ import java.util.Map;
 import static java.lang.System.*;
 import static java.net.InetAddress.getLocalHost;
 
-public class OtAttributes {
+public class OtSys {
 
   public static final String OtPrefix = "OT_";
-  public static final Map<String, String> otIdx = new LinkedHashMap<>();
+  public static final Map<String, String> otSysIdx = new LinkedHashMap<>();
 
   static {
-    otIdx.putAll(getJvmAttributes());
-    otIdx.putAll(getEnvAttributes());
+    otSysIdx.putAll(getJvmAttributes());
+    otSysIdx.putAll(getEnvAttributes());
   }
 
-  public static Map<String, String> getEnvAttributes() {
+  public static Map<String, String> envAttributesOf(Map<String, String> env) {
     var envIdx = new LinkedHashMap<String, String>();
-    getenv().forEach((k, v) -> {
+    env.forEach((k, v) -> {
       if (k.startsWith(OtPrefix)) {
         var key = k
           .replace(OtPrefix, "")
@@ -30,6 +30,10 @@ public class OtAttributes {
       }
     });
     return envIdx;
+  }
+
+  public static Map<String, String> getEnvAttributes() {
+    return envAttributesOf(getenv());
   }
 
   public static Map<String, String> getJvmAttributes() {

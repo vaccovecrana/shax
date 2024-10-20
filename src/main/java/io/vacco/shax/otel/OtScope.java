@@ -3,11 +3,12 @@ package io.vacco.shax.otel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OtResource {
+public class OtScope {
 
+  public String name, version;
   public List<OtAttribute> attributes;
 
-  public OtResource att(OtAttribute a) {
+  public OtScope att(OtAttribute a) {
     if (attributes == null) {
       attributes = new ArrayList<>();
     }
@@ -15,8 +16,11 @@ public class OtResource {
     return this;
   }
 
-  public static OtResource otResource() {
-    return new OtResource();
+  public static OtScope otScope(String name, String version) {
+    var s = new OtScope();
+    s.name = name;
+    s.version = version;
+    return s;
   }
 
 }

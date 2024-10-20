@@ -138,7 +138,6 @@ Neat!
 Pass in the following `Environment` or `System`  properties to configure:
 
 - `IO_VACCO_SHAX_DEVMODE` or `io.vacco.shax.devmode` to display messages like [pino-pretty](https://github.com/pinojs/pino-pretty) would. Defaults to `false`.
-- `IO_VACCO_SHAX_JULOUTPUT` or `io.vacco.shax.juloutput` to log messages using JUL as a log sink (primarily so that OTLP collectors can capture output without changes).
 - `IO_VACCO_SHAX_SHOWDATETIME` or `io.vacco.shax.showdatetime` to display or hide UTC times. Defaults to `true`.
 - `IO_VACCO_SHAX_LOGLEVEL` or `io.vacco.shax.loglevel` to set the root logger level. Defaults to `INFO`.
 - `IO_VACCO_SHAX_PRETTYPRINT` or `io.vacco.shax.prettyprint`, `true` to output formatted JSON, `false` to output a single line. Defaults to `false`.
@@ -150,7 +149,7 @@ Pass in the following `Environment` or `System`  properties to configure:
 
 `shax` is opinionated. It will:
 
-- Output only to `stderr` or JUL, no Files or TCP/UDP forwarding. So plug your favorite log forwarding agent at the process level to capture log output.
+- Output only to `stderr`, no Files or TCP/UDP forwarding. So plug your favorite log forwarding agent at the process level to capture log output.
 - Display time:
   - In the UTC timezone only (the entire planet lives there).
   - As `ISO-8601` extended offset date-time format.

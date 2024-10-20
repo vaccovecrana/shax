@@ -5,15 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.helpers.*;
 import java.util.*;
 import java.util.function.Function;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
 
 import static io.vacco.shax.logging.ShLogLevel.*;
 import static io.vacco.shax.logging.ShColor.*;
 import static java.lang.String.format;
 
+@SuppressWarnings("serial")
 public class ShLogger extends MarkerIgnoringBase {
 
   private static boolean initialized = false;

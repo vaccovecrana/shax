@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.*;
 
+@SuppressWarnings("serial")
 public class ShJsonArray extends ShJsonValue {
 
   private List<ShJsonValue> values = new ArrayList<>();
