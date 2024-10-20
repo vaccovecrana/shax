@@ -19,7 +19,6 @@ import static io.vacco.shax.otel.schema.OtScopeLog.otScopeLog;
 import static io.vacco.shax.otel.schema.OtValue.val;
 import static io.vacco.shax.otel.schema.OtAttribute.att;
 import static io.vacco.shax.otel.schema.OtLogRecord.otLogRecord;
-import static java.lang.String.format;
 import static java.lang.System.getProperty;
 import static java.lang.System.getenv;
 import static java.net.InetAddress.getLocalHost;
@@ -74,14 +73,20 @@ public class OtContext {
     jvmIdx.put(OtOsArch, getProperty(OtOsArch));
 
     var runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-    var runtimeName = runtimeMXBean.getName(); // Format: pid@hostname
+    var runtimeName = runtimeMXBean.getName(); // pid@hostname
     var pid = runtimeName.split("@")[0];
+
     jvmIdx.put(OtProcessPid, pid);
+    jvmIdx.put(OtServiceInstanceId, Integer.toHexString(Integer.parseInt(pid)));
 
     var javaCommand = getProperty("sun.java.command");
     if (javaCommand != null) {
       var commandParts = javaCommand.split(" ");
       jvmIdx.put(OtProcessExecutableName, commandParts[0]);
+      if (commandParts[0].contains(".")) {
+        jvmIdx.put(OtServiceName, commandParts[0].substring(commandParts[0].lastIndexOf(".") + 1));
+        jvmIdx.put(OtServiceNamespace, commandParts[0].substring(0, commandParts[0].lastIndexOf(".")));
+      }
     } else {
       jvmIdx.put(OtProcessExecutableName, "unknown");
     }
@@ -104,18 +109,9 @@ public class OtContext {
     return jvmIdx;
   }
 
-  public static void init(URI otUrl, String otScopeName, String otScopeVersion) {
-    if (otUrl != null) {
-      if (otScopeName == null || otScopeVersion == null) {
-        throw new IllegalArgumentException(format(
-          "%s environment property was configured as [%s], "
-            + "but no scope name or version has been defined. Please define "
-            + "%s and %s.",
-          ShOption.OTEL_COLLECTOR_URL, otUrl,
-          ShOption.OTEL_SCOPE_NAME, ShOption.OTEL_SCOPE_VERSION
-        ));
-      }
-      sink = new OtHttpSink(otUrl);
+  public static void init(String otUrl) {
+    if (otUrl != null && sink == null) {
+      sink = new OtHttpSink(URI.create(otUrl)).start();
     }
   }
 

@@ -10,9 +10,7 @@ public enum ShOption {
   IO_VACCO_SHAX_PRETTYPRINT,
   IO_VACCO_SHAX_LOGGER,
 
-  OTEL_COLLECTOR_URL,
-  OTEL_SCOPE_NAME,
-  OTEL_SCOPE_VERSION;
+  OTEL_COLLECTOR_URL;
 
   public String asSysProp() {
     return this.name().toLowerCase().replace("_", ".");

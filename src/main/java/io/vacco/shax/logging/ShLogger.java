@@ -47,6 +47,18 @@ public class ShLogger extends MarkerIgnoringBase {
     this.objectWriter = new ShObjectWriter(true, logConfig.prettyPrint);
   }
 
+  public static String messageFormat(ShLogLevel level, Long utcMs, String threadName, String message) {
+    return format("%s %s%s %s",
+      labelFor(level),
+      logConfig.showDateTime ?
+        blackBoldBright(
+          format("[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs)
+        ) : "",
+      bluePale(format("(%s)", threadName)),
+      message
+    );
+  }
+
   private void log(ShLogLevel level, FormattingTuple tp) {
     if (!isLevelEnabled(level)) {
       return;
@@ -61,17 +73,12 @@ public class ShLogger extends MarkerIgnoringBase {
       r = this.recordTransformer.apply(r);
     }
     if (logConfig.devMode) {
-      var utcMs = (Long) r.get(ShField.utc_ms.name());
-      var out = format("%s %s%s %s",
-          labelFor(level),
-          logConfig.showDateTime ?
-              blackBoldBright(
-                  format("[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs)
-              ) : "",
-          bluePale(format("(%s)", r.get(ShField.thread_name.name()).toString())),
-          r.get(ShField.message.name())
-      );
-      System.err.println(out);
+      System.err.println(messageFormat(
+        level,
+        (Long) r.get(ShField.utc_ms.name()),
+        r.get(ShField.thread_name.name()).toString(),
+        r.get(ShField.message.name()).toString()
+      ));
       for (var kvArg : kvArgs) {
         System.err.println(objectWriter.apply(kvArg.value));
       }

@@ -1,16 +1,11 @@
 package io.vacco.shax.test;
 
-import io.vacco.shax.json.ShObjectWriter;
 import io.vacco.shax.logging.*;
-import io.vacco.shax.otel.*;
-import io.vacco.shax.otel.schema.*;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
 import java.awt.GraphicsEnvironment;
-import java.util.ArrayList;
-import java.util.List;
 
 import static io.vacco.shax.json.ShMaps.*;
 import static io.vacco.shax.logging.ShOption.*;
@@ -21,19 +16,9 @@ import static j8spec.J8Spec.*;
 @RunWith(J8SpecRunner.class)
 public class ShLoggerSpec {
 
-  private static final List<OtLogRecord> logRecords = new ArrayList<>();
-  private static final ShObjectWriter ow = new ShObjectWriter(true, true);
-
   static {
     if (!GraphicsEnvironment.isHeadless()) {
-      OtContext.sink = new OtSink() {
-        @Override public void accept(OtLogRecord lr) {
-          logRecords.add(lr);
-        }
-        @Override public void accept(OtSpan sp) {
-          System.out.println(ow.apply(sp));
-        }
-      };
+      setSysProp(OTEL_COLLECTOR_URL, "https://otlp.example.io");
     }
   }
 
@@ -136,9 +121,13 @@ public class ShLoggerSpec {
     });
 
     describe("OTEL Logging", () -> {
-      // TODO initialize OTEL collector connection
       it("Creates OTEL log batches", () -> {
-        System.out.println(ow.apply(OtContext.logBatchOf(logRecords)));
+        Thread.sleep(8000);
+        var otLog = LoggerFactory.getLogger("otel.logger");
+        otLog.info("OTEL message 0 {}", 0);
+        otLog.warn("OTEL message 1 {}", 1);
+        otLog.info("OTEL message 2 {}", kv("number", 2));
+        Thread.sleep(8000);
       });
     });
   }

@@ -2,21 +2,15 @@ package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
 import io.vacco.shax.otel.OtContext;
-import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
 
 import static java.lang.System.*;
-import static java.net.URI.create;
-import static java.util.function.Function.identity;
 import static java.lang.Boolean.parseBoolean;
 
 public class ShLogConfig {
 
-  public URI    otUrl;
-  public String otScopeName;
-  public String otScopeVersion;
-
+  public String otUrl;
   public ShLogLevel defaultLogLevel;
   public Map<String, ShLogLevel> logLevels = new HashMap<>();
 
@@ -37,10 +31,7 @@ public class ShLogConfig {
     c.defaultLogLevel = loadProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, ShLogLevel::fromString);
     c.prettyPrint = loadProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, Boolean::parseBoolean);
     c.devMode = loadProp(ShOption.IO_VACCO_SHAX_DEVMODE, Boolean::parseBoolean);
-
-    c.otUrl = loadProp(ShOption.OTEL_COLLECTOR_URL, v -> v == null ? null : create(v));
-    c.otScopeName = loadProp(ShOption.OTEL_SCOPE_NAME, identity());
-    c.otScopeVersion = loadProp(ShOption.OTEL_SCOPE_VERSION, identity());
+    c.otUrl = loadProp(ShOption.OTEL_COLLECTOR_URL, Function.identity());
 
     getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {
@@ -61,7 +52,7 @@ public class ShLogConfig {
       }
     });
 
-    OtContext.init(c.otUrl, c.otScopeName, c.otScopeVersion);
+    OtContext.init(c.otUrl);
     return c;
   }
 

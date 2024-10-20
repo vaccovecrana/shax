@@ -1,6 +1,7 @@
 package io.vacco.shax.otel;
 
 import io.vacco.shax.json.ShObjectWriter;
+import io.vacco.shax.logging.ShLogLevel;
 import io.vacco.shax.otel.schema.*;
 import java.net.URI;
 import java.net.http.*;
@@ -8,17 +9,18 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static java.lang.System.err;
+import static java.lang.System.*;
 import static java.lang.Thread.*;
 import static java.net.http.HttpRequest.BodyPublishers;
 import static java.net.http.HttpResponse.BodyHandlers;
+import static io.vacco.shax.logging.ShLogger.messageFormat;
 
 public class OtHttpSink implements OtSink {
 
   private static final String ThreadName = "otel-http-sink";
 
   private static int      FlushIntervalMs = 5000;
-  private static Duration ClientTimeout = Duration.ofSeconds(5);
+  private static Duration ClientTimeout = Duration.ofSeconds(3);
   private static int      MaxRetries = 3;
   private static int      RetryDelayMs = 1000;
 
@@ -50,14 +52,23 @@ public class OtHttpSink implements OtSink {
     httpClient.sendAsync(request, BodyHandlers.ofString())
       .thenAccept(response -> {
         if (response.statusCode() != 200) {
-          err.printf("%s - Failed to send logs: [%s, %s]%n", ThreadName, response.statusCode(), response.body());
+          err.println(messageFormat(
+            ShLogLevel.ERROR, currentTimeMillis(), ThreadName,
+            String.format(
+              "Failed to send OTEL request: [%s, %s, %s]",
+              request.uri(), response.statusCode(), response.body()
+            )
+          ));
           if (attempt < MaxRetries) {
             retry(httpClient, request, attempt);
           }
         }
       })
       .exceptionally(e -> {
-        err.printf("%s - Exception while sending logs: %s%n", ThreadName, e.getMessage());
+        err.println(messageFormat(
+          ShLogLevel.ERROR, currentTimeMillis(), ThreadName,
+          String.format("Exception sending OTEL request: %s - %s", e.getClass().getSimpleName(), e.getMessage())
+        ));
         if (attempt < MaxRetries) {
           retry(httpClient, request, attempt);
         }
@@ -66,10 +77,13 @@ public class OtHttpSink implements OtSink {
   }
 
   private void sendLogs(List<OtLogRecord> logRecords) {
-    // TODO create log batch structure
-    var logPayload = objectWriter.apply(logRecords);
+    err.println(messageFormat(
+      ShLogLevel.INFO, currentTimeMillis(), ThreadName,
+      String.format("Sending %d logs", logRecords.size())
+    ));
+    var logPayload = objectWriter.apply(OtContext.logBatchOf(logRecords));
     var request = HttpRequest.newBuilder()
-      .uri(collectorUri)
+      .uri(collectorUri.resolve("/v1/logs"))
       .timeout(ClientTimeout)
       .header("Content-Type", "application/json")
       .POST(BodyPublishers.ofString(logPayload))
@@ -77,7 +91,7 @@ public class OtHttpSink implements OtSink {
     sendWithRetries(client, request, 0);
   }
 
-  private void process() {
+  private void processLogQueue() {
     var logBatch = new ArrayList<OtLogRecord>();
     logQueue.drainTo(logBatch);
     if (!logBatch.isEmpty()) {
@@ -89,14 +103,14 @@ public class OtHttpSink implements OtSink {
     var dispatcherThread = new Thread(() -> {
       while (running) {
         try {
+          processLogQueue();
           sleep(FlushIntervalMs);
-          process();
         } catch (InterruptedException e) {
           currentThread().interrupt();
           break;
         }
       }
-      process();
+      processLogQueue();
     }, ThreadName);
     dispatcherThread.setDaemon(true);
     dispatcherThread.start();
