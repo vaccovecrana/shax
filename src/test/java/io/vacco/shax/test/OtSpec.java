@@ -50,7 +50,7 @@ public class OtSpec {
             .scopeLog(
               otScopeLog(otScope("my-logger", "1.0.0"))
                 .logRecord(
-                  otLogRecord(nowNs(), 9, "Info")
+                  otLogRecord(nowNs(), "SEVERITY_NUMBER_INFO", "INFO")
                     .body(val("Application started successfully"))
                     .att(att("thread.id", 1))
                 )

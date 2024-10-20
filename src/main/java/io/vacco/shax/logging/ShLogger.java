@@ -53,22 +53,23 @@ public class ShLogger extends MarkerIgnoringBase {
     }
 
     var kvArgs = Arrays.stream(tp.getArgArray() != null ? tp.getArgArray() : new Object[]{})
-        .filter(o -> o instanceof ShArgument).toArray(ShArgument[]::new);
+      .filter(o -> o instanceof ShArgument)
+      .toArray(ShArgument[]::new);
     var r = ShLogRecord.from(logConfig, tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
 
     if (this.recordTransformer != null) {
       r = this.recordTransformer.apply(r);
     }
     if (logConfig.devMode) {
-      var utcMs = (Long) r.get(ShLogRecord.ShLrField.utc_ms.name());
+      var utcMs = (Long) r.get(ShField.utc_ms.name());
       var out = format("%s %s%s %s",
           labelFor(level),
           logConfig.showDateTime ?
               blackBoldBright(
                   format("[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs)
               ) : "",
-          bluePale(format("(%s)", r.get(ShLogRecord.ShLrField.thread_name.name()).toString())),
-          r.get(ShLogRecord.ShLrField.message.name())
+          bluePale(format("(%s)", r.get(ShField.thread_name.name()).toString())),
+          r.get(ShField.message.name())
       );
       System.err.println(out);
       for (var kvArg : kvArgs) {
@@ -84,7 +85,7 @@ public class ShLogger extends MarkerIgnoringBase {
     System.err.flush();
 
     if (OtContext.sink != null) {
-      OtContext.sink.accept(r);
+      // OtContext.sink.accept(r); TODO implement me
     }
   }
 

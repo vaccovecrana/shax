@@ -6,7 +6,7 @@ import java.util.List;
 public class OtLogRecord {
 
   public long               timeUnixNano;
-  public int                severityNumber;
+  public String             severityNumber; // why Otel? SEVERITY_NUMBER_INFO? Really Otel? Really?
   public String             severityText;
   public OtValue            body;
   public List<OtAttribute>  attributes;
@@ -24,7 +24,7 @@ public class OtLogRecord {
     return this;
   }
 
-  public static OtLogRecord otLogRecord(long timeUnixNano, int severityNumber, String severityText) {
+  public static OtLogRecord otLogRecord(long timeUnixNano, String severityNumber, String severityText) {
     var r = new OtLogRecord();
     r.timeUnixNano = timeUnixNano;
     r.severityNumber = severityNumber;

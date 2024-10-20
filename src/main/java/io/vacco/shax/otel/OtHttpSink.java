@@ -1,7 +1,6 @@
 package io.vacco.shax.otel;
 
 import io.vacco.shax.json.ShObjectWriter;
-import io.vacco.shax.logging.ShLogRecord;
 import java.net.URI;
 import java.net.http.*;
 import java.time.Duration;
@@ -24,12 +23,13 @@ public class OtHttpSink implements OtSink {
 
   private volatile boolean                  running = true;
   private final ShObjectWriter              objectWriter = new ShObjectWriter(true, false);
-  private final BlockingQueue<ShLogRecord>  logQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<OtLogRecord>  logQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<OtSpan>       spanQueue = new LinkedBlockingQueue<>();
   private final URI                         collectorUri;
   private final HttpClient                  client;
 
-  public OtHttpSink(String collectorEndpoint) {
-    this.collectorUri = URI.create(collectorEndpoint);
+  public OtHttpSink(URI collectorEndpoint) {
+    this.collectorUri = collectorEndpoint;
     this.client = HttpClient.newBuilder()
       .connectTimeout(ClientTimeout)
       .build();
@@ -64,8 +64,8 @@ public class OtHttpSink implements OtSink {
       });
   }
 
-  private void sendLogs(List<ShLogRecord> logRecords) {
-    // TODO convert log records to OTEL format
+  private void sendLogs(List<OtLogRecord> logRecords) {
+    // TODO create log batch structure
     var logPayload = objectWriter.apply(logRecords);
     var request = HttpRequest.newBuilder()
       .uri(collectorUri)
@@ -77,7 +77,7 @@ public class OtHttpSink implements OtSink {
   }
 
   private void process() {
-    var logBatch = new ArrayList<ShLogRecord>();
+    var logBatch = new ArrayList<OtLogRecord>();
     logQueue.drainTo(logBatch);
     if (!logBatch.isEmpty()) {
       sendLogs(logBatch);
@@ -111,7 +111,7 @@ public class OtHttpSink implements OtSink {
 
   }
 
-  @Override public void accept(ShLogRecord lr) {
+  @Override public void accept(OtLogRecord lr) {
     logQueue.offer(lr);
   }
 

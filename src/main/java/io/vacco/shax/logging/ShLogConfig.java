@@ -1,11 +1,11 @@
 package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
+import io.vacco.shax.otel.OtContext;
 import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
 
-import static java.lang.String.format;
 import static java.lang.System.*;
 import static java.net.URI.create;
 import static java.util.function.Function.identity;
@@ -42,15 +42,6 @@ public class ShLogConfig {
     c.otScopeName = loadProp(ShOption.OTEL_SCOPE_NAME, identity());
     c.otScopeVersion = loadProp(ShOption.OTEL_SCOPE_VERSION, identity());
 
-    if (c.otUrl != null && (c.otScopeName == null || c.otScopeVersion == null)) {
-      throw new IllegalArgumentException(format(
-        "OTEL_COLLECTOR_URL environment property was configured as [%s], "
-          + "but no scope name or version has been defined. Please define "
-          + "OTEL_SCOPE_NAME and OTEL_SCOPE_VERSION.",
-        c.otUrl
-      ));
-    }
-
     getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {
         var logName = k
@@ -70,6 +61,7 @@ public class ShLogConfig {
       }
     });
 
+    OtContext.init(c.otUrl, c.otScopeName, c.otScopeVersion);
     return c;
   }
 

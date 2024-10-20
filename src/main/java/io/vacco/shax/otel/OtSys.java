@@ -1,5 +1,6 @@
 package io.vacco.shax.otel;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
@@ -7,11 +8,12 @@ import java.util.Map;
 
 import static java.lang.System.*;
 import static java.net.InetAddress.getLocalHost;
+import static java.util.Objects.requireNonNull;
 
 public class OtSys {
 
   public static final String
-    Ot = "opentelemetry", Java = "java",
+    Shax = "shax", Java = "java",
 
     OtHostName = "host.name",
     OsName = "os.name",
@@ -25,6 +27,7 @@ public class OtSys {
     OtProcessRuntimeVendor = "process.runtime.vendor",
 
     OtTelemetrySdkName = "telemetry.sdk.name",
+    OtTelemetrySdkVersion = "telemetry.sdk.version",
     OtTelemetrySdkLanguage = "telemetry.sdk.language"
   ;
 
@@ -87,8 +90,15 @@ public class OtSys {
     jvmIdx.put(OtProcessRuntimeDescription, getProperty("java.vm.name") + " " + getProperty("java.vm.version"));
     jvmIdx.put(OtProcessRuntimeVendor, getProperty("java.vm.vendor"));
 
-    jvmIdx.put(OtTelemetrySdkName, Ot);
+    jvmIdx.put(OtTelemetrySdkName, Shax);
     jvmIdx.put(OtTelemetrySdkLanguage, Java);
+
+    try (var is = OtSys.class.getResourceAsStream("/io/vacco/shax/version")) {
+      var version = new String(requireNonNull(is).readAllBytes()).trim();
+      jvmIdx.put(OtTelemetrySdkVersion, version);
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
 
     return jvmIdx;
   }

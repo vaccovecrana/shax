@@ -13,8 +13,8 @@ val api by configurations
 
 dependencies { api("org.slf4j:slf4j-api:2.0.16") }
 
-// Add for OTEL testing
-// IO_VACCO_SHAX_DEVMODE=true;IO_VACCO_SHAX_JULOUTPUT=true;OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-server;OTEL_LOGS_EXPORTER=otlp;OTEL_RESOURCE_ATTRIBUTES=service.name=shax-dev
-//tasks.withType<Test>().all {
-//  jvmArgs("-javaagent:/Users/jjzazuet/Desktop/opentelemetry-javaagent.jar")
-//}
+tasks.processResources {
+  filesMatching("io/vacco/shax/version") {
+    expand("projectVersion" to version)
+  }
+}

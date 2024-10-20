@@ -1,7 +1,6 @@
 package io.vacco.shax.test;
 
 import io.vacco.shax.logging.*;
-import io.vacco.shax.otel.*;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
@@ -18,14 +17,7 @@ import static j8spec.J8Spec.*;
 public class ShLoggerSpec {
   static {
     if (!GraphicsEnvironment.isHeadless()) {
-      OtContext.sink = new OtSink() {
-        @Override public void accept(ShLogRecord lr) {
-          System.out.println(lr);
-        }
-        @Override public void accept(OtSpan sp) {
-
-        }
-      };
+      // TODO initialize OTEL collector connection
     }
   }
   static {
@@ -44,10 +36,10 @@ public class ShLoggerSpec {
         var log = ShLogger.withTransformer(
             LoggerFactory.getLogger(ShLoggerSpec.class),
             r -> {
-              r.put("@timestamp", r.get(ShLogRecord.ShLrField.utc.name()));
+              r.put("@timestamp", r.get(ShField.utc.name()));
               r.put("@version", 1);
-              r.remove(ShLogRecord.ShLrField.utc.name());
-              r.remove(ShLogRecord.ShLrField.utc_ms.name());
+              r.remove(ShField.utc.name());
+              r.remove(ShField.utc_ms.name());
               return r;
             }
         );
