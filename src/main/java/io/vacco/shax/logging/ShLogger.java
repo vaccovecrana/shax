@@ -9,6 +9,7 @@ import java.util.function.Function;
 import static io.vacco.shax.logging.ShLogLevel.*;
 import static io.vacco.shax.logging.ShColor.*;
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 @SuppressWarnings("serial")
 public class ShLogger extends MarkerIgnoringBase {
@@ -35,8 +36,8 @@ public class ShLogger extends MarkerIgnoringBase {
 
   protected ShLogger(String name) {
     this.name = name;
-    String tempName = name;
-    ShLogLevel level = null;
+    var tempName = name;
+    var level = (ShLogLevel) null;
     int indexOfLastDot = tempName.length();
 
     while ((level == null) && (indexOfLastDot > -1)) {
@@ -62,16 +63,16 @@ public class ShLogger extends MarkerIgnoringBase {
       return;
     }
 
-    ShArgument[] kvArgs = Arrays.stream(tp.getArgArray() != null ? tp.getArgArray() : new Object[]{})
+    var kvArgs = Arrays.stream(tp.getArgArray() != null ? tp.getArgArray() : new Object[]{})
         .filter(o -> o instanceof ShArgument).toArray(ShArgument[]::new);
-    ShLogRecord r = ShLogRecord.from(logConfig, tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
+    var r = ShLogRecord.from(logConfig, tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
 
     if (this.recordTransformer != null) {
       r = this.recordTransformer.apply(r);
     }
     if (logConfig.devMode) {
-      Long utcMs = (Long) r.get(ShLogRecord.ShLrField.utc_ms.name());
-      String out = format("%s %s%s %s",
+      var utcMs = (Long) r.get(ShLogRecord.ShLrField.utc_ms.name());
+      var out = format("%s %s%s %s",
           labelFor(level),
           logConfig.showDateTime ?
               blackBoldBright(
@@ -81,14 +82,14 @@ public class ShLogger extends MarkerIgnoringBase {
           r.get(ShLogRecord.ShLrField.message.name())
       );
       doPrint(out, r);
-      for (ShArgument kvArg : kvArgs) {
+      for (var kvArg : kvArgs) {
         doPrint(objectWriter.apply(kvArg.value), r);
       }
       if (tp.getThrowable() != null) {
         tp.getThrowable().printStackTrace(System.err);
       }
     } else {
-      String json = objectWriter.apply(r);
+      var json = objectWriter.apply(r);
       doPrint(json, r);
     }
     doFlush();
@@ -109,10 +110,10 @@ public class ShLogger extends MarkerIgnoringBase {
   }
 
   public static Logger withTransformer(Logger log, Function<ShLogRecord, ShLogRecord> fn) {
-    Objects.requireNonNull(log);
-    Objects.requireNonNull(fn);
+    requireNonNull(log);
+    requireNonNull(fn);
     if (log instanceof ShLogger) {
-      ShLogger l = (ShLogger) log;
+      var l = (ShLogger) log;
       if (l.recordTransformer != null) {
         throw new IllegalArgumentException(
             format("logger already defines a transform function: [%s]", l.recordTransformer)
@@ -158,4 +159,5 @@ public class ShLogger extends MarkerIgnoringBase {
   public void error(String format, Object arg1, Object arg2) { formatAndLog(ERROR, format, arg1, arg2); }
   public void error(String format, Object... argArray) { formatAndLog(ERROR, format, argArray); }
   public void error(String msg, Throwable t) { log(ERROR, new FormattingTuple(msg, null, t)); }
+
 }

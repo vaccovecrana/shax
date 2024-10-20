@@ -16,16 +16,16 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
   }
 
   public static String toString(Throwable t) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
+    var sw = new StringWriter();
+    var pw = new PrintWriter(sw);
     t.printStackTrace(pw);
     return sw.toString();
   }
 
   public static ShLogRecord from(ShLogConfig config, String message, String logName,
                                  ShLogLevel logLevel, Throwable t, ShArgument... args) {
-    ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
-    ShLogRecord r = new ShLogRecord();
+    var nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+    var r = new ShLogRecord();
 
     if (config.showDateTime) {
       r.put(ShLrField.utc.name(), DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(nowUtc));
@@ -50,4 +50,5 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
     return r;
   }
+
 }

@@ -36,10 +36,10 @@ public class ShReflect {
   }
 
   public static Object[] wrap(Object o) {
-    Class<?> type = o.getClass();
+    var type = o.getClass();
     if (Object[].class.isAssignableFrom(type)) return (Object[]) o;
     int al;
-    Object[] oa = new Object[] {};
+    var oa = new Object[] {};
     if (int[].class.equals(type))     { al = ((int[]) o).length;      oa = new Object[al]; for (int i = 0; i < al; i++) { oa[i] = ((int[]) o)[i]; } }
     if (double[].class.equals(type))  { al = ((double[]) o).length;   oa = new Object[al]; for (int i = 0; i < al; i++) { oa[i] = ((double[]) o)[i]; } }
     if (char[].class.equals(type))    { al = ((char[]) o).length;     oa = new Object[al]; for (int i = 0; i < al; i++) { oa[i] = ((char[]) o)[i]; } }
@@ -59,4 +59,5 @@ public class ShReflect {
         || isBoolean(o)
         || isCollection(o);
   }
+
 }

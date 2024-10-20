@@ -19,4 +19,5 @@ public class ShJsonLiteral extends ShJsonValue {
   public void write(ShJsonWriter writer) throws IOException {
     writer.writeLiteral(value);
   }
+
 }

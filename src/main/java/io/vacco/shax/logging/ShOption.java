@@ -23,7 +23,7 @@ public enum ShOption {
   }
 
   public static void setLoggerSysProp(String loggerName, ShLogLevel level) {
-    String logNameProp = String.format(
+    var logNameProp = String.format(
         "%s.%s", ShOption.IO_VACCO_SHAX_LOGGER.asSysProp(),
         requireNonNull(loggerName)
     );

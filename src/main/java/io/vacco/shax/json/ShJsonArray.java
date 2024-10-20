@@ -18,7 +18,7 @@ public class ShJsonArray extends ShJsonValue {
   public void write(ShJsonWriter writer) throws IOException {
     writer.writeArrayOpen();
     for (int k = 0; k < values.size(); k++) {
-      ShJsonValue v = values.get(k);
+      var v = values.get(k);
       if (v != null) {
         v.write(writer);
       } else {
@@ -30,4 +30,5 @@ public class ShJsonArray extends ShJsonValue {
     }
     writer.writeArrayClose();
   }
+
 }

@@ -18,16 +18,14 @@ public class ShWritingBuffer extends Writer {
     buffer = new char[bufferSize];
   }
 
-  @Override
-  public void write(int c) throws IOException {
+  @Override public void write(int c) throws IOException {
     if (fill > buffer.length - 1) {
       flush();
     }
     buffer[fill++] = (char) c;
   }
 
-  @Override
-  public void write(char[] cbuf, int off, int len) throws IOException {
+  @Override public void write(char[] cbuf, int off, int len) throws IOException {
     if (fill > buffer.length - len) {
       flush();
       if (len > buffer.length) {
@@ -39,8 +37,7 @@ public class ShWritingBuffer extends Writer {
     fill += len;
   }
 
-  @Override
-  public void write(String str, int off, int len) throws IOException {
+  @Override public void write(String str, int off, int len) throws IOException {
     if (fill > buffer.length - len) {
       flush();
       if (len > buffer.length) {
@@ -52,11 +49,11 @@ public class ShWritingBuffer extends Writer {
     fill += len;
   }
 
-  @Override
-  public void flush() throws IOException {
+  @Override public void flush() throws IOException {
     writer.write(buffer, 0, fill);
     fill = 0;
   }
 
   @Override public void close() {}
+
 }

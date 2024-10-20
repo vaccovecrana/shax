@@ -8,16 +8,16 @@ public class ShArgument {
   public Object value;
 
   public static ShArgument kv(String key, Object value) {
-    ShArgument a = new ShArgument();
+    var a = new ShArgument();
     a.key = Objects.requireNonNull(key);
     a.value = value;
     return a;
   }
 
-  @Override
-  public String toString() {
+  @Override public String toString() {
     return String.format("{%s=%s}",
         key, value != null ? value.getClass().getCanonicalName() : "null"
     );
   }
+
 }

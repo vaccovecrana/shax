@@ -16,4 +16,5 @@ class ShJsonString extends ShJsonValue {
   public void write(ShJsonWriter writer) throws IOException {
     writer.writeString(string);
   }
+
 }

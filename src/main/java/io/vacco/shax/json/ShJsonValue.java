@@ -47,4 +47,5 @@ public abstract class ShJsonValue implements Serializable {
 
     throw new IllegalArgumentException(String.format("Not a value type: [%s]", o));
   }
+
 }

@@ -73,8 +73,7 @@ public class ShLogConfig {
     return c;
   }
 
-  @Override
-  public String toString() {
+  @Override public String toString() {
     return "ShLogConfig " + new ShObjectWriter(false, true).apply(this);
   }
 
