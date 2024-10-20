@@ -8,6 +8,8 @@ import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
 import java.awt.GraphicsEnvironment;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.vacco.shax.json.ShMaps.*;
 import static io.vacco.shax.logging.ShOption.*;
@@ -17,20 +19,23 @@ import static j8spec.J8Spec.*;
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
 public class ShLoggerSpec {
+
+  public static final List<OtLogRecord> logRecords = new ArrayList<>();
+
   static {
     var ow = new ShObjectWriter(true, true);
     if (!GraphicsEnvironment.isHeadless()) {
       OtContext.sink = new OtSink() {
         @Override public void accept(OtLogRecord lr) {
-          System.out.println(ow.apply(lr));
+          logRecords.add(lr);
         }
         @Override public void accept(OtSpan sp) {
           System.out.println(ow.apply(sp));
         }
       };
-      // TODO initialize OTEL collector connection
     }
   }
+
   static {
     describe("SLF4J Binding", () -> {
       it("Can load configuration from the environment and system properties", () -> {
@@ -127,6 +132,13 @@ public class ShLoggerSpec {
           c -> c.expected(IllegalArgumentException.class),
           () -> ShLogger.withTransformer(LoggerFactory.getLogger(ShLoggerSpec.class), r -> r)
       );
+    });
+
+    describe("OTEL Logging", () -> {
+      // TODO initialize OTEL collector connection
+      it("Creates OTEL log batches", () -> {
+
+      });
     });
   }
 

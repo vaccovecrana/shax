@@ -15,9 +15,23 @@ import static java.lang.String.format;
 public class OtContext {
 
   public static final String
+    OtServiceName = "service.name"
+
+    /*
+    ': 'app.js',
+    'service.namespace': 'tutorial',
+    'service.version': '1.0',
+    'service.instance.id'
+     */
+  ;
+
+  public static final String
       OtLoggerName = "logger.name",
       OtThreadName = "thread.name",
-      OtThreadId   = "thread.id";
+      OtThreadId   = "thread.id",
+      OtExceptionMessage = "exception.message",
+      OtExceptionStacktrace = "exception.stacktrace",
+      OtExceptionType = "exception.type";
 
   private static final Random r = new Random();
   private static final ShObjectWriter ow = new ShObjectWriter(true, true);
@@ -86,14 +100,12 @@ public class OtContext {
         .att(att(OtLoggerName, valueOf(lr.logName)))
         .att(att(OtThreadName, valueOf(lr.threadName)))
         .att(att(OtThreadId, valueOf(lr.threadId)));
-
-    /*
-     * TODO add:
-     *  exception.message
-     *  exception.stacktrace
-     *  exception.type
-     */
-
+    if (lr.throwable != null) {
+      var t = lr.throwable;
+      otLr.att(att(OtExceptionType, valueOf(t.getClass().getCanonicalName())));
+      otLr.att(att(OtExceptionMessage, valueOf(t.getMessage())));
+      otLr.att(att(OtExceptionStacktrace, valueOf(ShLogRecord.stackTraceOf(t))));
+    }
     for (var arg : lr.kvArgs) {
       otLr.att(att(arg.key, valueOf(arg.value)));
     }

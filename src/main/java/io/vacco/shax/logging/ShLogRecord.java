@@ -15,7 +15,7 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
   public transient String         message, logName, threadName;
   public transient int            threadId;
 
-  public static String toString(Throwable t) {
+  public static String stackTraceOf(Throwable t) {
     var sw = new StringWriter();
     var pw = new PrintWriter(sw);
     t.printStackTrace(pw);
@@ -46,7 +46,7 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
     if (t != null) {
       r.throwable = t;
-      r.put(ShField.stack_trace.name(), toString(t));
+      r.put(ShField.stack_trace.name(), stackTraceOf(t));
     }
     if (args != null) {
       for (var arg : args) {
