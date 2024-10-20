@@ -15,4 +15,5 @@ public class MyPojoNumbers {
     numbers.meep = 2.0f;
     return numbers;
   }
+
 }

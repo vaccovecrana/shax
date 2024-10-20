@@ -25,10 +25,6 @@ public class ShLogger extends MarkerIgnoringBase {
   protected static void lazyInit() {
     if (initialized) { return; }
     initialized = true;
-    init();
-  }
-
-  protected static void init() {
     logConfig = ShLogConfig.load();
     System.err.println(magentaBoldBright("Shax!"));
     System.err.println(new ShObjectWriter(false, true).apply(logConfig));

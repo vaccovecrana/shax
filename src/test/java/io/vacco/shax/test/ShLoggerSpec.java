@@ -14,7 +14,7 @@ import static j8spec.J8Spec.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
-public class ShLoggingSpec {
+public class ShLoggerSpec {
   static {
     describe("SLF4J Binding", () -> {
       it("Can load configuration from the environment and system properties", () -> {
@@ -29,7 +29,7 @@ public class ShLoggingSpec {
       });
       it("Can log JSON messages", () -> {
         Logger log = ShLogger.withTransformer(
-            LoggerFactory.getLogger(ShLoggingSpec.class),
+            LoggerFactory.getLogger(ShLoggerSpec.class),
             r -> {
               r.put("@timestamp", r.get(ShLogRecord.ShLrField.utc.name()));
               r.put("@version", 1);
@@ -103,7 +103,7 @@ public class ShLoggingSpec {
       });
       it("Cannot override a log record transform once one has been defined",
           c -> c.expected(IllegalArgumentException.class),
-          () -> ShLogger.withTransformer(LoggerFactory.getLogger(ShLoggingSpec.class), r -> r)
+          () -> ShLogger.withTransformer(LoggerFactory.getLogger(ShLoggerSpec.class), r -> r)
       );
     });
   }
