@@ -142,6 +142,7 @@ Pass in the following `Environment` or `System`  properties to configure:
 - `IO_VACCO_SHAX_LOGLEVEL` or `io.vacco.shax.loglevel` to set the root logger level. Defaults to `INFO`.
 - `IO_VACCO_SHAX_PRETTYPRINT` or `io.vacco.shax.prettyprint`, `true` to output formatted JSON, `false` to output a single line. Defaults to `false`.
 - `IO_VACCO_SHAX_LOGGER_X_Y_Z` or `io.vacco.shax.logger.x.y.z` (multiple times with different values) to set individual logger namespace levels.
+- `OTEL_COLLECTOR_URL` or `otel.collector.url` to forward logs and traces to an OTEL collector. Example: `https://otel.example.io`.
 
 > Note: `shax` will search for `Environment` variables, then `System` properties to load these values.
 
@@ -156,7 +157,7 @@ Pass in the following `Environment` or `System`  properties to configure:
   - As a Unix millisecond timestamp.
 - Not support `slf4j`'s MDC logging.
 
-If you're not okay with any of these, then `shax` is not for you.
+If you're not okay with these, then `shax` is not for you.
 
 Go back to [logstash-logback-encoder](https://github.com/logstash/logstash-logback-encoder) as it may suit your use case better.
 
@@ -164,7 +165,7 @@ Go back to [logstash-logback-encoder](https://github.com/logstash/logstash-logba
 
 If you use log record transformer functions in your code, be aware that:
 
-- Only a single transformer can be assigned once per `Logger` instance. Reassignments will result in errors.
+- A record transformer can only be assigned only once to a `Logger`. Reassignments will result in an error.
 - In `dev` mode, the only mandatory fields you must preserve in your record transformer are: `[level, thread_name, message]`.
 - Any transformer function *MAY* be stateless and *MUST* be thread-safe, since many threads will be calling your code.
 
