@@ -1,4 +1,4 @@
-package io.vacco.shax.otel;
+package io.vacco.shax.otel.schema;
 
 public class OtValue { // TODO improve this if there's enough demand.
 

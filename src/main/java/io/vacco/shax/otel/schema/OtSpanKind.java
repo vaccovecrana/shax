@@ -1,4 +1,4 @@
-package io.vacco.shax.otel;
+package io.vacco.shax.otel.schema;
 
 public enum OtSpanKind {
   SPAN_KIND_INTERNAL,

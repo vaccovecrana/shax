@@ -1,6 +1,7 @@
 package io.vacco.shax.otel;
 
 import io.vacco.shax.json.ShObjectWriter;
+import io.vacco.shax.otel.schema.*;
 import java.net.URI;
 import java.net.http.*;
 import java.time.Duration;
