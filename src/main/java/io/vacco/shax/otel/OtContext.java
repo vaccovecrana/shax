@@ -86,6 +86,14 @@ public class OtContext {
         .att(att(OtLoggerName, valueOf(lr.logName)))
         .att(att(OtThreadName, valueOf(lr.threadName)))
         .att(att(OtThreadId, valueOf(lr.threadId)));
+
+    /*
+     * TODO add:
+     *  exception.message
+     *  exception.stacktrace
+     *  exception.type
+     */
+
     for (var arg : lr.kvArgs) {
       otLr.att(att(arg.key, valueOf(arg.value)));
     }
