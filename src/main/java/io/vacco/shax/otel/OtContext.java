@@ -3,9 +3,11 @@ package io.vacco.shax.otel;
 import java.time.Instant;
 import java.util.Random;
 
-public class Otel {
+public class OtContext {
 
   private static final Random r = new Random();
+
+  public static OtSink sink;
 
   public static long nowNs() {
     var now = Instant.now();

@@ -1,11 +1,12 @@
 package io.vacco.shax.test;
 
 import io.vacco.shax.logging.*;
+import io.vacco.shax.otel.*;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
-import java.util.*;
+import java.awt.GraphicsEnvironment;
 
 import static io.vacco.shax.json.ShMaps.*;
 import static io.vacco.shax.logging.ShOption.*;
@@ -15,6 +16,18 @@ import static j8spec.J8Spec.*;
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
 public class ShLoggerSpec {
+  static {
+    if (!GraphicsEnvironment.isHeadless()) {
+      OtContext.sink = new OtSink() {
+        @Override public void accept(ShLogRecord lr) {
+          System.out.println(lr);
+        }
+        @Override public void accept(OtSpan sp) {
+
+        }
+      };
+    }
+  }
   static {
     describe("SLF4J Binding", () -> {
       it("Can load configuration from the environment and system properties", () -> {
@@ -28,7 +41,7 @@ public class ShLoggerSpec {
         System.out.println(c);
       });
       it("Can log JSON messages", () -> {
-        Logger log = ShLogger.withTransformer(
+        var log = ShLogger.withTransformer(
             LoggerFactory.getLogger(ShLoggerSpec.class),
             r -> {
               r.put("@timestamp", r.get(ShLogRecord.ShLrField.utc.name()));
@@ -39,17 +52,17 @@ public class ShLoggerSpec {
             }
         );
 
-        Logger otherLog = LoggerFactory.getLogger("someOtherLogger");
+        var otherLog = LoggerFactory.getLogger("someOtherLogger");
         otherLog.error("This is an ERROR message from some other logger");
 
-        MyPojo p = MyPojo.getInstance();
-        Exception x = new IllegalStateException("oops");
+        var p = MyPojo.getInstance();
+        var x = new IllegalStateException("oops");
 
         log.info("{}", kv("arrayWithNulls", new Integer[] {1, 2, null, 4, null, 5}));
 
         log.info("Let's see some cats and owners");
 
-        Map<String, String> catOwners = map(
+        var catOwners = map(
           e("Garfield", "Jon"),
           e("Arlene", "Jon"),
           e("Azrael", "Gargamel"),

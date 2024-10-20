@@ -1,6 +1,7 @@
 package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
+import io.vacco.shax.otel.OtContext;
 import org.slf4j.Logger;
 import org.slf4j.helpers.*;
 import java.util.*;
@@ -46,14 +47,6 @@ public class ShLogger extends MarkerIgnoringBase {
     this.objectWriter = new ShObjectWriter(true, logConfig.prettyPrint);
   }
 
-  private void doPrint(String data, ShLogRecord r) {
-    System.err.println(data);
-  }
-
-  private void doFlush() {
-    System.err.flush();
-  }
-
   private void log(ShLogLevel level, FormattingTuple tp) {
     if (!isLevelEnabled(level)) {
       return;
@@ -77,18 +70,22 @@ public class ShLogger extends MarkerIgnoringBase {
           bluePale(format("(%s)", r.get(ShLogRecord.ShLrField.thread_name.name()).toString())),
           r.get(ShLogRecord.ShLrField.message.name())
       );
-      doPrint(out, r);
+      System.err.println(out);
       for (var kvArg : kvArgs) {
-        doPrint(objectWriter.apply(kvArg.value), r);
+        System.err.println(objectWriter.apply(kvArg.value));
       }
       if (tp.getThrowable() != null) {
         tp.getThrowable().printStackTrace(System.err);
       }
     } else {
       var json = objectWriter.apply(r);
-      doPrint(json, r);
+      System.err.println(json);
     }
-    doFlush();
+    System.err.flush();
+
+    if (OtContext.sink != null) {
+      OtContext.sink.accept(r);
+    }
   }
 
   private void formatAndLog(ShLogLevel level, String format, Object arg1, Object arg2) {

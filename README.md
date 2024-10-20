@@ -167,3 +167,7 @@ If you use log record transformer functions in your code, be aware that:
 - Only a single transformer can be assigned once per `Logger` instance. Reassignments will result in errors.
 - In `dev` mode, the only mandatory fields you must preserve in your record transformer are: `[level, thread_name, message]`.
 - Any transformer function *MAY* be stateless and *MUST* be thread-safe, since many threads will be calling your code.
+
+## Tips & tricks
+
+- Don't nest super complex objects in `ShArgument`s.

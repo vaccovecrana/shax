@@ -10,6 +10,24 @@ import static java.net.InetAddress.getLocalHost;
 
 public class OtSys {
 
+  public static final String
+    Ot = "opentelemetry", Java = "java",
+
+    OtHostName = "host.name",
+    OsName = "os.name",
+    OtOsType = "os.type", OtOsDescription = "os.description",
+    OtOsVersion = "os.version", OtOsArch = "os.arch",
+
+    OtProcessPid = "process.pid", OtProcessExecutableName = "process.executable.name",
+    OtProcessRuntimeName = "process.runtime.name",
+    OtProcessRuntimeVersion = "process.runtime.version",
+    OtProcessRuntimeDescription = "process.runtime.description",
+    OtProcessRuntimeVendor = "process.runtime.vendor",
+
+    OtTelemetrySdkName = "telemetry.sdk.name",
+    OtTelemetrySdkLanguage = "telemetry.sdk.language"
+  ;
+
   public static final String OtPrefix = "OT_";
   public static final Map<String, String> otSysIdx = new LinkedHashMap<>();
 
@@ -41,36 +59,36 @@ public class OtSys {
 
     try {
       var hostname = getLocalHost().getHostName();
-      jvmIdx.put("host.name", hostname);
+      jvmIdx.put(OtHostName, hostname);
     } catch (UnknownHostException e) {
-      jvmIdx.put("host.name", "unknown");
+      jvmIdx.put(OtHostName, "unknown");
     }
 
-    jvmIdx.put("os.type", getProperty("os.name"));
-    jvmIdx.put("os.description", getProperty("os.name") + " " + getProperty("os.version"));
-    jvmIdx.put("os.version", getProperty("os.version"));
-    jvmIdx.put("os.arch", getProperty("os.arch"));
+    jvmIdx.put(OtOsType, getProperty(OsName));
+    jvmIdx.put(OtOsDescription, getProperty(OsName) + " " + getProperty(OtOsVersion));
+    jvmIdx.put(OtOsVersion, getProperty(OtOsVersion));
+    jvmIdx.put(OtOsArch, getProperty(OtOsArch));
 
     var runtimeMXBean = ManagementFactory.getRuntimeMXBean();
     var runtimeName = runtimeMXBean.getName(); // Format: pid@hostname
     var pid = runtimeName.split("@")[0];
-    jvmIdx.put("process.pid", pid);
+    jvmIdx.put(OtProcessPid, pid);
 
     var javaCommand = getProperty("sun.java.command");
     if (javaCommand != null) {
       var commandParts = javaCommand.split(" ");
-      jvmIdx.put("process.executable.name", commandParts[0]);
+      jvmIdx.put(OtProcessExecutableName, commandParts[0]);
     } else {
-      jvmIdx.put("process.executable.name", "unknown");
+      jvmIdx.put(OtProcessExecutableName, "unknown");
     }
 
-    jvmIdx.put("process.runtime.name", getProperty("java.runtime.name"));
-    jvmIdx.put("process.runtime.version", getProperty("java.runtime.version"));
-    jvmIdx.put("process.runtime.description", getProperty("java.vm.name") + " " + getProperty("java.vm.version"));
-    jvmIdx.put("process.runtime.vendor", getProperty("java.vm.vendor"));
+    jvmIdx.put(OtProcessRuntimeName, getProperty("java.runtime.name"));
+    jvmIdx.put(OtProcessRuntimeVersion, getProperty("java.runtime.version"));
+    jvmIdx.put(OtProcessRuntimeDescription, getProperty("java.vm.name") + " " + getProperty("java.vm.version"));
+    jvmIdx.put(OtProcessRuntimeVendor, getProperty("java.vm.vendor"));
 
-    jvmIdx.put("telemetry.sdk.name", "opentelemetry");
-    jvmIdx.put("telemetry.sdk.language", "java");
+    jvmIdx.put(OtTelemetrySdkName, Ot);
+    jvmIdx.put(OtTelemetrySdkLanguage, Java);
 
     return jvmIdx;
   }

@@ -43,7 +43,7 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
       r.put(ShLrField.stack_trace.name(), toString(t));
     }
     if (args != null) {
-      for (ShArgument arg : args) {
+      for (var arg : args) {
         r.put(arg.key, arg.value);
       }
     }

@@ -7,7 +7,7 @@ import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import java.util.HashMap;
 
-import static io.vacco.shax.otel.Otel.*;
+import static io.vacco.shax.otel.OtContext.*;
 import static io.vacco.shax.otel.OtAttribute.att;
 import static io.vacco.shax.otel.OtLogRecord.otLogRecord;
 import static io.vacco.shax.otel.OtResourceLog.otResourceLog;
