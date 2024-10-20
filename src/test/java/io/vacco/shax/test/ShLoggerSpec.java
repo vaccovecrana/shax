@@ -71,7 +71,13 @@ public class ShLoggerSpec {
           e("Azrael", "Gargamel"),
           e("Chi", "Youhei")
         );
+
         log.info("Cats and Owners [{}]", kv("catOwners", catOwners));
+        log.info("Boolean log {}", kv("boolVal", true));
+        log.info("Integer log {}", kv("intVal", 42));
+        log.info("Long    log {}", kv("longVal", 42L));
+        log.info("Float   log {}", kv("floatVal", 2.0f));
+        log.info("Double  log {}", kv("doubleVal", 3.0));
 
         if (log.isTraceEnabled()) {
           log.trace("This is a TRACE message");
