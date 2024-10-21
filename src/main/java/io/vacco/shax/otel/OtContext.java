@@ -19,8 +19,7 @@ import static io.vacco.shax.otel.schema.OtScopeLog.otScopeLog;
 import static io.vacco.shax.otel.schema.OtValue.val;
 import static io.vacco.shax.otel.schema.OtAttribute.att;
 import static io.vacco.shax.otel.schema.OtLogRecord.otLogRecord;
-import static java.lang.System.getProperty;
-import static java.lang.System.getenv;
+import static java.lang.System.*;
 import static java.net.InetAddress.getLocalHost;
 import static java.util.Objects.requireNonNull;
 
@@ -121,11 +120,14 @@ public class OtContext {
   }
 
   public static String traceId() {
-    return Long.toHexString(r.nextLong());
+    return String.format("%s%s",
+      Long.toHexString(r.nextLong()),
+      Long.toHexString(r.nextLong())
+    );
   }
 
   public static String spanId() {
-    return Integer.toHexString(r.nextInt());
+    return Long.toHexString(r.nextLong());
   }
 
   public static long msToNs(long millis) {
