@@ -185,11 +185,7 @@ public class OtContext {
     for (var lr : logs) {
       scopeLog.logRecord(lr);
     }
-    return otBatch()
-      .resourceLog(
-        otResourceLog(res)
-          .scopeLog(scopeLog)
-      );
+    return otBatch().resourceLog(otResourceLog(res).scopeLog(scopeLog));
   }
 
 }
