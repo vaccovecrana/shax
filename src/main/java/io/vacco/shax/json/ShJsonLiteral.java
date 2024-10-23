@@ -2,6 +2,7 @@ package io.vacco.shax.json;
 
 import java.io.IOException;
 
+@SuppressWarnings("serial")
 public class ShJsonLiteral extends ShJsonValue {
 
   public static final ShJsonLiteral NULL = new ShJsonLiteral("null");
@@ -18,4 +19,5 @@ public class ShJsonLiteral extends ShJsonValue {
   public void write(ShJsonWriter writer) throws IOException {
     writer.writeLiteral(value);
   }
+
 }

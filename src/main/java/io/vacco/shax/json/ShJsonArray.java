@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.*;
 
+@SuppressWarnings("serial")
 public class ShJsonArray extends ShJsonValue {
 
   private List<ShJsonValue> values = new ArrayList<>();
@@ -17,7 +18,7 @@ public class ShJsonArray extends ShJsonValue {
   public void write(ShJsonWriter writer) throws IOException {
     writer.writeArrayOpen();
     for (int k = 0; k < values.size(); k++) {
-      ShJsonValue v = values.get(k);
+      var v = values.get(k);
       if (v != null) {
         v.write(writer);
       } else {
@@ -29,4 +30,5 @@ public class ShJsonArray extends ShJsonValue {
     }
     writer.writeArrayClose();
   }
+
 }

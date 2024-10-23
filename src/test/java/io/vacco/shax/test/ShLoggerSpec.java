@@ -1,11 +1,14 @@
 package io.vacco.shax.test;
 
 import io.vacco.shax.logging.*;
+import io.vacco.shax.otel.OtContext;
+import io.vacco.shax.otel.schema.OtSpan;
+import io.vacco.shax.otel.schema.OtSpanKind;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
-import java.util.*;
+import java.awt.GraphicsEnvironment;
 
 import static io.vacco.shax.json.ShMaps.*;
 import static io.vacco.shax.logging.ShOption.*;
@@ -14,7 +17,14 @@ import static j8spec.J8Spec.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
-public class ShLoggingSpec {
+public class ShLoggerSpec {
+
+  static {
+    if (!GraphicsEnvironment.isHeadless()) {
+      setSysProp(OTEL_COLLECTOR_URL, "https://otlp.example.io");
+    }
+  }
+
   static {
     describe("SLF4J Binding", () -> {
       it("Can load configuration from the environment and system properties", () -> {
@@ -22,42 +32,46 @@ public class ShLoggingSpec {
         setSysProp(IO_VACCO_SHAX_LOGLEVEL, "trace");
         setSysProp(IO_VACCO_SHAX_PRETTYPRINT, "true");
         setSysProp(IO_VACCO_SHAX_DEVMODE, "true");
-        setSysProp(IO_VACCO_SHAX_JULOUTPUT, "true");
-        setSysProp(IO_VACCO_SHAX_ENVIRONMENT, "test");
         setLoggerSysProp("io.vacco.shax.test", ShLogLevel.TRACE);
 
         ShLogConfig c = ShLogConfig.load();
         System.out.println(c);
       });
       it("Can log JSON messages", () -> {
-        Logger log = ShLogger.withTransformer(
-            LoggerFactory.getLogger(ShLoggingSpec.class),
+        var log = ShLogger.withTransformer(
+            LoggerFactory.getLogger(ShLoggerSpec.class),
             r -> {
-              r.put("@timestamp", r.get(ShLogRecord.ShLrField.utc.name()));
+              r.put("@timestamp", r.get(ShField.utc.name()));
               r.put("@version", 1);
-              r.remove(ShLogRecord.ShLrField.utc.name());
-              r.remove(ShLogRecord.ShLrField.utc_ms.name());
+              r.remove(ShField.utc.name());
+              r.remove(ShField.utc_ms.name());
               return r;
             }
         );
 
-        Logger otherLog = LoggerFactory.getLogger("someOtherLogger");
+        var otherLog = LoggerFactory.getLogger("someOtherLogger");
         otherLog.error("This is an ERROR message from some other logger");
 
-        MyPojo p = MyPojo.getInstance();
-        Exception x = new IllegalStateException("oops");
+        var p = MyPojo.getInstance();
+        var x = new IllegalStateException("oops");
 
         log.info("{}", kv("arrayWithNulls", new Integer[] {1, 2, null, 4, null, 5}));
 
         log.info("Let's see some cats and owners");
 
-        Map<String, String> catOwners = map(
+        var catOwners = map(
           e("Garfield", "Jon"),
           e("Arlene", "Jon"),
           e("Azrael", "Gargamel"),
           e("Chi", "Youhei")
         );
+
         log.info("Cats and Owners [{}]", kv("catOwners", catOwners));
+        log.info("Boolean log {}", kv("boolVal", true));
+        log.info("Integer log {}", kv("intVal", 42));
+        log.info("Long    log {}", kv("longVal", 42L));
+        log.info("Float   log {}", kv("floatVal", 2.0f));
+        log.info("Double  log {}", kv("doubleVal", 3.0));
 
         if (log.isTraceEnabled()) {
           log.trace("This is a TRACE message");
@@ -105,9 +119,36 @@ public class ShLoggingSpec {
       });
       it("Cannot override a log record transform once one has been defined",
           c -> c.expected(IllegalArgumentException.class),
-          () -> ShLogger.withTransformer(LoggerFactory.getLogger(ShLoggingSpec.class), r -> r)
+          () -> ShLogger.withTransformer(LoggerFactory.getLogger(ShLoggerSpec.class), r -> r)
       );
     });
+
+    describe("OTEL Logging", () -> {
+      it("Creates OTEL log batches", () -> {
+        Thread.sleep(8000);
+        var otLog = LoggerFactory.getLogger("otel.logger");
+        otLog.info("OTEL message 0 {}", 0);
+        otLog.warn("OTEL message 1 {}", 1);
+        otLog.info("OTEL message 2 {}", kv("number", 2));
+        Thread.sleep(8000);
+        superComputeStuff();
+        Thread.sleep(8000);
+      });
+    });
+  }
+
+  private static Integer superComputeStuff() {
+    OtSpan<Integer> lol = OtContext.span(OtSpanKind.SPAN_KIND_INTERNAL, sp -> {
+      var meaningOfUniverse = "MOMOMOMOMOMO";
+      OtSpan<String> lol1 = OtContext.span(sp, OtSpanKind.SPAN_KIND_CLIENT, sp1 -> {
+        Thread.sleep(2500);
+        return sp1
+            .att("TheSuperComputeResult", meaningOfUniverse)
+            .ok(meaningOfUniverse);
+      });
+      return sp.ok(42);
+    });
+    return lol.result;
   }
 
 }

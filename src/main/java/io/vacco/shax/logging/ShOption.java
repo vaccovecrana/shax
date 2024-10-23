@@ -4,13 +4,13 @@ import static java.util.Objects.requireNonNull;
 
 public enum ShOption {
 
-  IO_VACCO_SHAX_ENVIRONMENT,
   IO_VACCO_SHAX_DEVMODE,
-  IO_VACCO_SHAX_JULOUTPUT,
   IO_VACCO_SHAX_SHOWDATETIME,
   IO_VACCO_SHAX_LOGLEVEL,
   IO_VACCO_SHAX_PRETTYPRINT,
-  IO_VACCO_SHAX_LOGGER;
+  IO_VACCO_SHAX_LOGGER,
+
+  OTEL_COLLECTOR_URL;
 
   public String asSysProp() {
     return this.name().toLowerCase().replace("_", ".");
@@ -21,7 +21,7 @@ public enum ShOption {
   }
 
   public static void setLoggerSysProp(String loggerName, ShLogLevel level) {
-    String logNameProp = String.format(
+    var logNameProp = String.format(
         "%s.%s", ShOption.IO_VACCO_SHAX_LOGGER.asSysProp(),
         requireNonNull(loggerName)
     );

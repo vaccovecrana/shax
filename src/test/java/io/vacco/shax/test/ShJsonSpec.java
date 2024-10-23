@@ -37,7 +37,7 @@ public class ShJsonSpec {
       it("can emit collection value types", () -> {
         System.out.println(w.apply(Arrays.asList(1, 2, 3, 4)));
         System.out.println(w.apply(new TreeSet<>(Arrays.asList("dog", "cat", "bird", "fish"))));
-        Map<String, Object> foos = new TreeMap<>();
+        var foos = new TreeMap<String, Object>();
         foos.put("one", null);
         foos.put("two", "2");
         foos.put("three", 3);
@@ -54,7 +54,7 @@ public class ShJsonSpec {
         System.out.println(w.apply(new byte[]  {0, 1, 2, 3, 4, 5, 6}));
       });
       it("can extract object values from an input", () -> {
-        MyPojo p = MyPojo.getInstance();
+        var p = MyPojo.getInstance();
         System.out.println(new ShObjectWriter(true, true).apply(p));
         System.out.println(new ShObjectWriter(false, false).apply(p));
       });

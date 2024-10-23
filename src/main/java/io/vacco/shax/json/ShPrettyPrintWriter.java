@@ -13,46 +13,39 @@ public class ShPrettyPrintWriter extends ShJsonWriter {
     this.indentChars = indentChars;
   }
 
-  @Override
-  protected void writeArrayOpen() throws IOException {
+  @Override protected void writeArrayOpen() throws IOException {
     indent++;
     writer.write('[');
   }
 
-  @Override
-  protected void writeArrayClose() throws IOException {
+  @Override protected void writeArrayClose() throws IOException {
     indent--;
     writer.write(']');
   }
 
-  @Override
-  protected void writeArraySeparator() throws IOException {
+  @Override protected void writeArraySeparator() throws IOException {
     writer.write(',');
     writer.write(' ');
   }
 
-  @Override
-  protected void writeObjectOpen() throws IOException {
+  @Override protected void writeObjectOpen() throws IOException {
     indent++;
     writer.write('{');
     writeNewLine();
   }
 
-  @Override
-  protected void writeObjectClose() throws IOException {
+  @Override protected void writeObjectClose() throws IOException {
     indent--;
     writeNewLine();
     writer.write('}');
   }
 
-  @Override
-  protected void writeMemberSeparator() throws IOException {
+  @Override protected void writeMemberSeparator() throws IOException {
     writer.write(':');
     writer.write(' ');
   }
 
-  @Override
-  protected void writeObjectSeparator() throws IOException {
+  @Override protected void writeObjectSeparator() throws IOException {
     writer.write(',');
     if (!writeNewLine()) {
       writer.write(' ');
@@ -69,4 +62,5 @@ public class ShPrettyPrintWriter extends ShJsonWriter {
     }
     return true;
   }
+
 }

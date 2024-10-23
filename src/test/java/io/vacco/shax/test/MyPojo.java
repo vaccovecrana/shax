@@ -21,17 +21,17 @@ public class MyPojo {
   public void setNumbers(MyPojoNumbers numbers) { this.numbers = numbers; }
 
   public static MyPojo getInstance() {
-    Map<String, Long> longs = new LinkedHashMap<>();
+    var longs = new LinkedHashMap<String, Long>();
     longs.put("One", 1L);
     longs.put("Two", 2L);
     longs.put("Three", 3L);
 
-    Set<String> cats = new HashSet<>();
+    var cats = new HashSet<String>();
     cats.add("fido");
     cats.add("garfield");
     cats.add("felix");
 
-    MyPojo p = new MyPojo();
+    var p = new MyPojo();
     p.foos = Arrays.asList(1, 2, 3, 4, 5);
     p.longs = longs;
     p.zeep = "zap";
@@ -46,4 +46,5 @@ public class MyPojo {
 
     return p;
   }
+
 }

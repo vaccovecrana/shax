@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings("serial")
 public class ShJsonObject extends ShJsonValue {
 
   private final List<String> names;
@@ -25,8 +26,8 @@ public class ShJsonObject extends ShJsonValue {
   @Override
   public void write(ShJsonWriter writer) throws IOException {
     writer.writeObjectOpen();
-    Iterator<String> namesIterator = names.iterator();
-    Iterator<ShJsonValue> valuesIterator = values.iterator();
+    var namesIterator = names.iterator();
+    var valuesIterator = values.iterator();
     if (namesIterator.hasNext()) {
       writer.writeMemberName(namesIterator.next());
       writer.writeMemberSeparator();
@@ -40,4 +41,5 @@ public class ShJsonObject extends ShJsonValue {
     }
     writer.writeObjectClose();
   }
+
 }

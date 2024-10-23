@@ -1,19 +1,18 @@
 package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
+import io.vacco.shax.otel.OtContext;
 import org.slf4j.Logger;
 import org.slf4j.helpers.*;
 import java.util.*;
 import java.util.function.Function;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
 
 import static io.vacco.shax.logging.ShLogLevel.*;
 import static io.vacco.shax.logging.ShColor.*;
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
+@SuppressWarnings("serial")
 public class ShLogger extends MarkerIgnoringBase {
 
   private static boolean initialized = false;
@@ -27,32 +26,15 @@ public class ShLogger extends MarkerIgnoringBase {
   protected static void lazyInit() {
     if (initialized) { return; }
     initialized = true;
-    init();
-  }
-
-  protected static void init() {
     logConfig = ShLogConfig.load();
     System.err.println(magentaBoldBright("Shax!"));
     System.err.println(new ShObjectWriter(false, true).apply(logConfig));
-    if (logConfig.julOutput) {
-      java.util.logging.Logger rl = java.util.logging.Logger.getLogger("");
-      Level rll = ShLogLevel.julLevelOf(logConfig.defaultLogLevel);
-      rl.setLevel(rll);
-      for (Handler hdl : rl.getHandlers()) {
-        hdl.setLevel(rll);
-        hdl.setFormatter(new Formatter() {
-          @Override public String format(LogRecord record) {
-            return record.getMessage() + System.lineSeparator();
-          }
-        });
-      }
-    }
   }
 
   protected ShLogger(String name) {
     this.name = name;
-    String tempName = name;
-    ShLogLevel level = null;
+    var tempName = name;
+    var level = (ShLogLevel) null;
     int indexOfLastDot = tempName.length();
 
     while ((level == null) && (indexOfLastDot > -1)) {
@@ -65,34 +47,16 @@ public class ShLogger extends MarkerIgnoringBase {
     this.objectWriter = new ShObjectWriter(true, logConfig.prettyPrint);
   }
 
-  private void doPrint(String data, ShLogRecord r) {
-    if (!logConfig.julOutput) {
-      System.err.println(data);
-    } else {
-      LogRecord lr = new LogRecord(
-        ShLogLevel.julLevelOf(
-          (ShLogLevel) r.get(ShLogRecord.ShLrField.level.name())
-        ), data
-      );
-      lr.setLoggerName(this.name);
-      if (r.throwable != null) {
-        lr.setThrown(r.throwable);
-      }
-
-      String loggerName = (String) r.get(ShLogRecord.ShLrField.logger_name.name());
-      java.util.logging.Logger jl = java.util.logging.Logger.getLogger(loggerName);
-      Level jlLevel = ShLogLevel.julLevelOf(currentLogLevel);
-      if (jl.getLevel() == null || !jl.getLevel().equals(jlLevel)) {
-        jl.setLevel(jlLevel);
-      }
-      jl.log(lr);
-    }
-  }
-
-  private void doFlush() {
-    if (!logConfig.julOutput) {
-      System.err.flush();
-    }
+  public static String messageFormat(ShLogLevel level, Long utcMs, String threadName, String message) {
+    return format("%s %s%s %s",
+      labelFor(level),
+      logConfig.showDateTime ?
+        blackBoldBright(
+          format("[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs)
+        ) : "",
+      bluePale(format("(%s)", threadName)),
+      message
+    );
   }
 
   private void log(ShLogLevel level, FormattingTuple tp) {
@@ -100,36 +64,36 @@ public class ShLogger extends MarkerIgnoringBase {
       return;
     }
 
-    ShArgument[] kvArgs = Arrays.stream(tp.getArgArray() != null ? tp.getArgArray() : new Object[]{})
-        .filter(o -> o instanceof ShArgument).toArray(ShArgument[]::new);
-    ShLogRecord r = ShLogRecord.from(logConfig, tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
+    var kvArgs = Arrays.stream(tp.getArgArray() != null ? tp.getArgArray() : new Object[]{})
+      .filter(o -> o instanceof ShArgument)
+      .toArray(ShArgument[]::new);
+    var r = ShLogRecord.from(logConfig, tp.getMessage(), this.name, level, tp.getThrowable(), kvArgs);
 
     if (this.recordTransformer != null) {
       r = this.recordTransformer.apply(r);
     }
     if (logConfig.devMode) {
-      Long utcMs = (Long) r.get(ShLogRecord.ShLrField.utc_ms.name());
-      String out = format("%s %s%s %s",
-          labelFor(level),
-          logConfig.showDateTime ?
-              blackBoldBright(
-                  format("[%s] ", utcMs == null ? System.currentTimeMillis() : utcMs)
-              ) : "",
-          bluePale(format("(%s)", r.get(ShLogRecord.ShLrField.thread_name.name()).toString())),
-          r.get(ShLogRecord.ShLrField.message.name())
-      );
-      doPrint(out, r);
-      for (ShArgument kvArg : kvArgs) {
-        doPrint(objectWriter.apply(kvArg.value), r);
+      System.err.println(messageFormat(
+        level,
+        (Long) r.get(ShField.utc_ms.name()),
+        r.get(ShField.thread_name.name()).toString(),
+        r.get(ShField.message.name()).toString()
+      ));
+      for (var kvArg : kvArgs) {
+        System.err.println(objectWriter.apply(kvArg.value));
       }
       if (tp.getThrowable() != null) {
         tp.getThrowable().printStackTrace(System.err);
       }
     } else {
-      String json = objectWriter.apply(r);
-      doPrint(json, r);
+      var json = objectWriter.apply(r);
+      System.err.println(json);
     }
-    doFlush();
+    System.err.flush();
+
+    if (OtContext.sink != null) {
+      OtContext.sink.accept(OtContext.mapFrom(r));
+    }
   }
 
   private void formatAndLog(ShLogLevel level, String format, Object arg1, Object arg2) {
@@ -147,10 +111,10 @@ public class ShLogger extends MarkerIgnoringBase {
   }
 
   public static Logger withTransformer(Logger log, Function<ShLogRecord, ShLogRecord> fn) {
-    Objects.requireNonNull(log);
-    Objects.requireNonNull(fn);
+    requireNonNull(log);
+    requireNonNull(fn);
     if (log instanceof ShLogger) {
-      ShLogger l = (ShLogger) log;
+      var l = (ShLogger) log;
       if (l.recordTransformer != null) {
         throw new IllegalArgumentException(
             format("logger already defines a transform function: [%s]", l.recordTransformer)
@@ -196,4 +160,5 @@ public class ShLogger extends MarkerIgnoringBase {
   public void error(String format, Object arg1, Object arg2) { formatAndLog(ERROR, format, arg1, arg2); }
   public void error(String format, Object... argArray) { formatAndLog(ERROR, format, argArray); }
   public void error(String msg, Throwable t) { log(ERROR, new FormattingTuple(msg, null, t)); }
+
 }

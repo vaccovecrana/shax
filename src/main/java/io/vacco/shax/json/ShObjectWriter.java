@@ -7,7 +7,7 @@ import java.util.*;
 import static io.vacco.shax.json.ShReflect.*;
 import static io.vacco.shax.json.ShJsonValue.*;
 
-public class ShObjectWriter extends ShObjectScanner {
+public class ShObjectWriter {
 
   static class ShRefMeta {
     List<Field> fields = new ArrayList<>();
@@ -17,6 +17,7 @@ public class ShObjectWriter extends ShObjectScanner {
   // TODO de-init thread local upon JVM shutdown
   private static final ThreadLocal<WeakHashMap<Class<?>, ShRefMeta>> classMeta = ThreadLocal.withInitial(WeakHashMap::new);
 
+  private final Map<Object, Object> refs = new IdentityHashMap<>();
   private final boolean omitNullValues;
   private final boolean prettyPrint;
 
@@ -25,31 +26,43 @@ public class ShObjectWriter extends ShObjectScanner {
     this.prettyPrint = prettyPrint;
   }
 
+  private Object mark(Object o) {
+    if (o == null) return null;
+    if (!ShReflect.isBaseType(o)) {
+      if (!refs.containsKey(o)) {
+        refs.put(o, o);
+        return o;
+      }
+      return null;
+    }
+    return o;
+  }
+
   private String getAccessorName(String fieldName) {
-    String fName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+    var fName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     return String.format("get%s", fName);
   }
 
   private String fromAccessorName(String getterName) {
-    String rawProp = getterName.replace("get", "");
+    var rawProp = getterName.replace("get", "");
     rawProp = Character.toLowerCase(rawProp.charAt(0)) + rawProp.substring(1);
     return rawProp;
   }
 
   private ShRefMeta metaOf(Class<?> clazz) {
-    ShRefMeta meta = classMeta.get().get(clazz);
-    Class<?> cN = clazz;
+    var meta = classMeta.get().get(clazz);
+    var cN = clazz;
     if (meta == null) {
       meta = new ShRefMeta();
       while (cN != null) {
-        for (Field field : cN.getDeclaredFields()) {
+        for (var field : cN.getDeclaredFields()) {
           int mods = field.getModifiers();
-          if (Modifier.isPublic(mods) && !Modifier.isStatic(mods)) {
+          if (Modifier.isPublic(mods) && !Modifier.isStatic(mods) && !Modifier.isTransient(mods)) {
             field.setAccessible(true);
             meta.fields.add(field);
           } else {
             try {
-              Method accessor = cN.getMethod(getAccessorName(field.getName()));
+              var accessor = cN.getMethod(getAccessorName(field.getName()));
               if (Modifier.isPublic(accessor.getModifiers())) {
                 meta.accessors.add(accessor);
               }
@@ -64,13 +77,13 @@ public class ShObjectWriter extends ShObjectScanner {
   }
 
   private Map<String, Object> rawValuesOf(Object o) {
-    ShRefMeta meta = metaOf(o.getClass());
-    Map<String, Object> values = new TreeMap<>();
+    var meta = metaOf(o.getClass());
+    var values = new TreeMap<String, Object>();
     try {
-      for (Field field : meta.fields) {
+      for (var field : meta.fields) {
         values.put(field.getName(), field.get(o));
       }
-      for (Method accessor : meta.accessors) {
+      for (var accessor : meta.accessors) {
         values.put(fromAccessorName(accessor.getName()), accessor.invoke(o));
       }
       return values;
@@ -83,16 +96,16 @@ public class ShObjectWriter extends ShObjectScanner {
     } else if (o instanceof Set) {
       return new ShJsonArray().add(((Set<?>) o).stream().map(this::fromObject));
     } else if (o instanceof Map) {
-      ShJsonObject mo = new ShJsonObject();
+      var mo = new ShJsonObject();
       ((Map<?, ?>) o).forEach((k, v) -> {
-        ShJsonValue jv = fromObject(v);
+        var jv = fromObject(v);
         if (jv != null) {
           mo.set(k.toString(), jv);
         }
       });
       return mo;
     }
-    Object[] oa = wrap(o);
+    var oa = wrap(o);
     return new ShJsonArray().add(Arrays.stream(oa).map(this::fromObject));
   }
 
@@ -103,11 +116,11 @@ public class ShObjectWriter extends ShObjectScanner {
     if (isBaseType(o)) {
       return isCollection(o) ? fromCollection(o) : fromValue(o);
     }
-    ShJsonObject root = new ShJsonObject();
-    Map<String, ?> rawVals = rawValuesOf(o);
-    for (String k : rawVals.keySet()) {
-      Object v = rawVals.get(k);
-      ShJsonValue jv = fromObject(v);
+    var root = new ShJsonObject();
+    var rawVals = rawValuesOf(o);
+    for (var k : rawVals.keySet()) {
+      var v = rawVals.get(k);
+      var jv = fromObject(v);
       if (jv == null) {
         if (!omitNullValues) {
           root.set(k, ShJsonLiteral.NULL);
@@ -120,16 +133,17 @@ public class ShObjectWriter extends ShObjectScanner {
   }
 
   public String apply(Object o) {
-    StringWriter sw = new StringWriter();
-    ShWritingBuffer wb = new ShWritingBuffer(sw);
-    ShJsonWriter w = prettyPrint ? new ShPrettyPrintWriter(wb, new char[] {' ', ' '}) : new ShJsonWriter(wb);
+    var sw = new StringWriter();
+    var wb = new ShWritingBuffer(sw);
+    var w = prettyPrint ? new ShPrettyPrintWriter(wb, new char[] {' ', ' '}) : new ShJsonWriter(wb);
     try {
-      ShJsonValue jv = fromObject(o);
+      var jv = fromObject(o);
       if (jv != null) {
         jv.write(w);
         wb.flush();
         wb.close();
       }
+      refs.clear();
       return sw.toString();
     } catch (Exception x) {
       return String.join("\n",

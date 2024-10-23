@@ -13,7 +13,7 @@ public class ShMaps {
   }
 
   public static <K, V> Map<K, V> mapOn(Stream<Map.Entry<K, V>> entries) {
-    Map<K, V> m = new LinkedHashMap<>();
+    var m = new LinkedHashMap<K, V>();
     entries.forEach(e -> m.put(e.getKey(), e.getValue()));
     return m;
   }

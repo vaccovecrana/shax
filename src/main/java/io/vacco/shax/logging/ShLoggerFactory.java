@@ -20,9 +20,10 @@ public class ShLoggerFactory implements ILoggerFactory {
     if (simpleLogger != null) {
       return simpleLogger;
     } else {
-      Logger newInstance = new ShLogger(name);
-      Logger oldInstance = loggerMap.putIfAbsent(name, newInstance);
+      var newInstance = new ShLogger(name);
+      var oldInstance = loggerMap.putIfAbsent(name, newInstance);
       return oldInstance == null ? newInstance : oldInstance;
     }
   }
+
 }

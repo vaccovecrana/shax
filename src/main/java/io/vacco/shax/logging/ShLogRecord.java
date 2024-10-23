@@ -1,56 +1,58 @@
 package io.vacco.shax.logging;
 
-import java.io.*;
+import io.vacco.shax.otel.schema.OtSpan;
+
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@SuppressWarnings("serial")
 public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
-  public transient Throwable throwable;
-
-  public enum ShLrField {
-    environment, utc, utc_ms, thread_name, message,
-    logger_name, level, level_value, stack_trace
-  }
-
-  public static String toString(Throwable t) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    t.printStackTrace(pw);
-    return sw.toString();
-  }
+  public transient Throwable      throwable;
+  public transient ShLogLevel     level;
+  public transient ZonedDateTime  utc;
+  public transient ShArgument[]   kvArgs;
+  public transient String         message, logName, threadName;
+  public transient int            threadId;
 
   public static ShLogRecord from(ShLogConfig config, String message, String logName,
                                  ShLogLevel logLevel, Throwable t, ShArgument... args) {
-    ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
-    ShLogRecord r = new ShLogRecord();
-
-    if (config.environment != null) {
-      r.put(ShLrField.environment.name(), config.environment);
-    }
+    var r = new ShLogRecord();
+    r.utc = ZonedDateTime.now(ZoneId.of("UTC"));
+    r.level = logLevel;
+    r.kvArgs = args;
+    r.message = message;
+    r.logName = Objects.requireNonNull(logName);
+    r.threadName = Thread.currentThread().getName();
+    r.threadId = (int) Thread.currentThread().getId();
 
     if (config.showDateTime) {
-      r.put(ShLrField.utc.name(), DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(nowUtc));
-      r.put(ShLrField.utc_ms.name(), nowUtc.toInstant().toEpochMilli());
+      r.put(ShField.utc.name(), DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(r.utc));
+      r.put(ShField.utc_ms.name(), r.utcMs());
     }
 
-    r.put(ShLrField.level.name(), Objects.requireNonNull(logLevel));
-    r.put(ShLrField.level_value.name(), logLevel.getRawLevel());
-    r.put(ShLrField.logger_name.name(), Objects.requireNonNull(logName));
-    r.put(ShLrField.thread_name.name(), Thread.currentThread().getName());
-    r.put(ShLrField.message.name(), Objects.requireNonNull(message));
+    r.put(ShField.level.name(), Objects.requireNonNull(logLevel));
+    r.put(ShField.level_value.name(), logLevel.getRawLevel());
+    r.put(ShField.logger_name.name(), r.logName);
+    r.put(ShField.thread_name.name(), r.threadName);
+    r.put(ShField.message.name(), Objects.requireNonNull(message));
 
     if (t != null) {
       r.throwable = t;
-      r.put(ShLrField.stack_trace.name(), toString(t));
+      r.put(ShField.stack_trace.name(), OtSpan.stackTraceOf(t));
     }
     if (args != null) {
-      for (ShArgument arg : args) {
+      for (var arg : args) {
         r.put(arg.key, arg.value);
       }
     }
 
     return r;
   }
+
+  public long utcMs() {
+    return utc.toInstant().toEpochMilli();
+  }
+
 }
