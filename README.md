@@ -142,7 +142,7 @@ Pass in the following `Environment` or `System`  properties to configure:
 - `IO_VACCO_SHAX_LOGLEVEL` or `io.vacco.shax.loglevel` to set the root logger level. Defaults to `INFO`.
 - `IO_VACCO_SHAX_PRETTYPRINT` or `io.vacco.shax.prettyprint`, `true` to output formatted JSON, `false` to output a single line. Defaults to `false`.
 - `IO_VACCO_SHAX_LOGGER_X_Y_Z` or `io.vacco.shax.logger.x.y.z` (multiple times with different values) to set individual logger namespace levels.
-- `OTEL_COLLECTOR_URL` or `otel.collector.url` to forward logs and traces to an OTEL collector. Example: `https://otel.example.io`.
+- `OTEL_EXPORTER_OTLP_ENDPOINT` or `otel.exporter.otlp.endpoint` to forward JSON logs and traces to an OTEL collector. Example: `https://otel.example.io`.
 
 > Note: `shax` will search for `Environment` variables, then `System` properties to load these values.
 

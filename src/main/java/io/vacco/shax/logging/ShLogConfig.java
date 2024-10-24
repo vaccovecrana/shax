@@ -31,7 +31,7 @@ public class ShLogConfig {
     c.defaultLogLevel = loadProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, ShLogLevel::fromString);
     c.prettyPrint = loadProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, Boolean::parseBoolean);
     c.devMode = loadProp(ShOption.IO_VACCO_SHAX_DEVMODE, Boolean::parseBoolean);
-    c.otUrl = loadProp(ShOption.OTEL_COLLECTOR_URL, Function.identity());
+    c.otUrl = loadProp(ShOption.OTEL_EXPORTER_OTLP_ENDPOINT, Function.identity());
 
     getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {

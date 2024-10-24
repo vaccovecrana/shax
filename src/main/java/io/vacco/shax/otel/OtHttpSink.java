@@ -88,19 +88,11 @@ public class OtHttpSink implements OtSink {
   }
 
   private void sendLogs(List<OtLogRecord> logRecords) {
-    err.println(messageFormat(
-      ShLogLevel.INFO, currentTimeMillis(), OtThread,
-      String.format("Sending %d logs", logRecords.size())
-    ));
     var payload = objectWriter.apply(OtContext.logBatchOf(logRecords));
     sendRequest("/v1/logs", payload);
   }
 
   private void sendSpans(List<OtSpan<?>> spanRecords) {
-    err.println(messageFormat(
-        ShLogLevel.INFO, currentTimeMillis(), OtThread,
-        String.format("Sending %d spans", spanRecords.size())
-    ));
     var payload = objectWriter.apply(OtContext.spanBatchOf(spanRecords));
     sendRequest("/v1/traces", payload);
   }

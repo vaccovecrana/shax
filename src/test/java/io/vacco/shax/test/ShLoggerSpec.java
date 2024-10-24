@@ -21,7 +21,7 @@ public class ShLoggerSpec {
 
   static {
     if (!GraphicsEnvironment.isHeadless()) {
-      setSysProp(OTEL_COLLECTOR_URL, "https://otlp.example.io");
+      setSysProp(OTEL_EXPORTER_OTLP_ENDPOINT, "https://otlp.example.io");
     }
   }
 
