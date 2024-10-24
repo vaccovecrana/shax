@@ -2,7 +2,6 @@ package io.vacco.shax.test;
 
 import io.vacco.shax.json.ShObjectWriter;
 import io.vacco.shax.otel.OtContext;
-import io.vacco.shax.otel.schema.OtStatusCode;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
@@ -20,7 +19,6 @@ import static io.vacco.shax.otel.schema.OtScopeSpan.otScopeSpan;
 import static io.vacco.shax.otel.schema.OtScope.otScope;
 import static io.vacco.shax.otel.schema.OtSpan.otSpan;
 import static io.vacco.shax.otel.schema.OtSpanKind.*;
-import static io.vacco.shax.otel.schema.OtStatus.otStatus;
 import static io.vacco.shax.otel.schema.OtBatch.otBatch;
 import static io.vacco.shax.otel.schema.OtValue.val;
 import static j8spec.J8Spec.*;
@@ -38,7 +36,7 @@ public class OtSpec {
     });
     it("Transforms OTEL environment attributes", () -> {
       var env = new HashMap<String, String>();
-      env.put("OT_DEPLOYMENT_ENVIRONMENT", "test");
+      env.put("OTEL_DEPLOYMENT_ENVIRONMENT", "test");
       var otIdx = OtContext.envAttributesOf(env);
       assertTrue(otIdx.containsKey("deployment.environment"));
     });

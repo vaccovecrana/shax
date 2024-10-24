@@ -28,7 +28,7 @@ import static java.util.Objects.requireNonNull;
 
 public class OtContext {
 
-  public static final String OtPrefix = "OT_";
+  public static final String OtPrefix = "OTEL_";
   public static final Map<String, String> otSysIdx = new LinkedHashMap<>();
   public static final OtResource processResource;
   public static final OtScope processScope;
@@ -41,7 +41,9 @@ public class OtContext {
     processResource = otResource();
     processScope = otScope(otSysIdx.get(OtTelemetrySdkName), otSysIdx.get(OtTelemetrySdkVersion));
     for (var e : otSysIdx.entrySet()) {
-      processResource.att(att(e.getKey(), val(e.getValue())));
+      if (!e.getKey().equals(ShOption.OTEL_EXPORTER_OTLP_ENDPOINT.name())) {
+        processResource.att(att(e.getKey(), val(e.getValue())));
+      }
     }
   }
 
@@ -83,7 +85,7 @@ public class OtContext {
     var pid = runtimeName.split("@")[0];
 
     jvmIdx.put(OtProcessPid, pid);
-    jvmIdx.put(OtServiceInstanceId, Integer.toHexString(Integer.parseInt(pid)));
+    jvmIdx.put(OtServiceInstanceId, Integer.toHexString(runtimeName.hashCode()));
 
     var javaCommand = getProperty("sun.java.command");
     if (javaCommand != null) {
