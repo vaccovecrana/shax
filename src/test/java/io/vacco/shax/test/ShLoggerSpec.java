@@ -66,7 +66,7 @@ public class ShLoggerSpec {
           e("Chi", "Youhei")
         );
 
-        log.info("Cats and Owners [{}]", kv("catOwners", catOwners));
+        log.info("Cats and Owners {}", kv("catOwners", catOwners));
         log.info("Boolean log {}", kv("boolVal", true));
         log.info("Integer log {}", kv("intVal", 42));
         log.info("Long    log {}", kv("longVal", 42L));

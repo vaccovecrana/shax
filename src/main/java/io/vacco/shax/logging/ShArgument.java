@@ -1,6 +1,7 @@
 package io.vacco.shax.logging;
 
 import java.util.Objects;
+import static io.vacco.shax.json.ShReflect.*;
 
 public class ShArgument {
 
@@ -15,9 +16,15 @@ public class ShArgument {
   }
 
   @Override public String toString() {
-    return String.format("{%s=%s}",
-        key, value != null ? value.getClass().getCanonicalName() : "null"
-    );
+    String v = "null";
+    if (value != null) {
+      if (isBaseType(value) && !isCollection(value)) {
+        v = value.toString();
+      } else {
+        v = value.getClass().getCanonicalName();
+      }
+    }
+    return String.format("{%s=%s}", key, v);
   }
 
 }
