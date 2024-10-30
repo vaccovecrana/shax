@@ -1,7 +1,7 @@
 plugins { id("io.vacco.oss.gitflow") version "1.0.1" }
 
 group = "io.vacco.shax"
-version = "2.0.16.0.4.1"
+version = "2.0.16.0.4.2"
 
 configure<io.vacco.oss.gitflow.GsPluginProfileExtension> {
   addJ8Spec()
