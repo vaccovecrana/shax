@@ -4,6 +4,7 @@ import io.vacco.shax.logging.*;
 import io.vacco.shax.otel.OtContext;
 import io.vacco.shax.otel.schema.OtSpan;
 import io.vacco.shax.otel.schema.OtSpanKind;
+import io.vacco.shax.otel.schema.OtValue;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
@@ -13,6 +14,7 @@ import java.awt.GraphicsEnvironment;
 import static io.vacco.shax.json.ShMaps.*;
 import static io.vacco.shax.logging.ShOption.*;
 import static io.vacco.shax.logging.ShArgument.kv;
+import static io.vacco.shax.otel.schema.OtAttribute.att;
 import static j8spec.J8Spec.*;
 
 @DefinedOrder
@@ -21,7 +23,8 @@ public class ShLoggerSpec {
 
   static {
     if (!GraphicsEnvironment.isHeadless()) {
-      setSysProp(OTEL_EXPORTER_OTLP_ENDPOINT, "https://otlp.example.io");
+      setSysProp(OTEL_EXPORTER_OTLP_ENDPOINT, "https://otlp.vacco.io");
+      OtContext.processResource.att(att("deployment.environment", OtValue.val("shax")));
     }
   }
 
@@ -130,8 +133,14 @@ public class ShLoggerSpec {
         otLog.info("OTEL message 0 {}", 0);
         otLog.warn("OTEL message 1 {}", 1);
         otLog.info("OTEL message 2 {}", kv("number", 2));
+        System.err.println("----------------------");
         Thread.sleep(8000);
         superComputeStuff();
+        System.err.println("----------------------");
+        Thread.sleep(8000);
+        superComputeStuff();
+        System.err.println("----------------------");
+        otLog.info("OTEL message 3 {}", kv("number", 3));
         Thread.sleep(8000);
       });
     });

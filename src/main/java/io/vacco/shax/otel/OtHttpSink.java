@@ -2,8 +2,9 @@ package io.vacco.shax.otel;
 
 import io.vacco.shax.json.ShObjectWriter;
 import io.vacco.shax.otel.schema.*;
-import java.net.URI;
-import java.net.http.*;
+import javax.net.ssl.SSLSocketFactory;
+import java.io.*;
+import java.net.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
@@ -12,8 +13,6 @@ import static java.lang.Integer.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.*;
 import static java.lang.Thread.*;
-import static java.net.http.HttpRequest.BodyPublishers;
-import static java.net.http.HttpResponse.BodyHandlers;
 import static io.vacco.shax.logging.ShLogger.messageFormat;
 import static io.vacco.shax.logging.ShLogLevel.*;
 
@@ -28,60 +27,88 @@ public class OtHttpSink implements OtSink, ThreadFactory {
   private final BlockingQueue<OtLogRecord>  logQueue = new LinkedBlockingQueue<>();
   private final BlockingQueue<OtSpan<?>>    spanQueue = new LinkedBlockingQueue<>();
   private final URI                         collectorUri;
-  private final HttpClient                  client;
   private final ScheduledExecutorService    scheduler = Executors.newSingleThreadScheduledExecutor(this);
-  private final ExecutorService             workerPool = Executors.newCachedThreadPool(this);
+  private final byte[]                      responseBuff = new byte[2048];
 
-  public OtHttpSink(URI collectorEndpoint) {
-    this.collectorUri = collectorEndpoint;
-    this.client = HttpClient.newBuilder()
-      .connectTimeout(ClientTimeout)
-      .build();
+  private volatile Socket currentSocket = null;
+
+  public OtHttpSink(URI collectorUri) {
+    this.collectorUri = collectorUri;
   }
 
   @Override public Thread newThread(Runnable r) {
     return new Thread(r, format("%s-%s", OtThread, toHexString(r.hashCode())));
   }
 
-  private void sendRequest(String path, String payload) {
+  private void closeCurrentSocket() {
     try {
-      var request = HttpRequest.newBuilder()
-        .uri(collectorUri.resolve(path))
-        .timeout(ClientTimeout)
-        .header("Content-Type", "application/json")
-        .POST(BodyPublishers.ofString(payload))
-        .build();
-      var res = client.send(request, BodyHandlers.ofString());
-      if (res.statusCode() != 200) {
-        var msg = format(
-          "Failed to send OTEL request: [%s, %s, %s]",
-          request.uri(), res.statusCode(), res.body()
-        );
-        err.println(messageFormat(ERROR, currentTimeMillis(), currentThread().getName(), msg));
+      if (currentSocket != null) {
+        currentSocket.close();
       }
-    } catch (Exception e) {
-      throw new IllegalStateException(e);
+    } catch (IOException e) {
+      logError(e, "Failed to close socket");
+    } finally {
+      currentSocket = null;
     }
   }
 
-  private void sendLogs(List<OtLogRecord> logRecords) {
-    var payload = objectWriter.apply(OtContext.logBatchOf(logRecords));
-    sendRequest("/v1/logs", payload);
+  private void createNewSocket() {
+    try {
+      var scheme = collectorUri.getScheme();
+      var isHttps = "https".equalsIgnoreCase(scheme);
+      int port = collectorUri.getPort() == -1
+        ? (isHttps ? 443 : 80)
+        : collectorUri.getPort();
+      if (isHttps) {
+        var sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        currentSocket = sslSocketFactory.createSocket();
+      } else {
+        currentSocket = new Socket();
+      }
+      currentSocket.connect(new InetSocketAddress(collectorUri.getHost(), port), (int) ClientTimeout.toMillis());
+      currentSocket.setSoTimeout((int) ClientTimeout.toMillis());
+    } catch (IOException e) {
+      logError(e, "Failed to create Socket");
+      closeCurrentSocket();
+    }
   }
 
-  private void sendSpans(List<OtSpan<?>> spanRecords) {
-    var payload = objectWriter.apply(OtContext.spanBatchOf(spanRecords));
-    sendRequest("/v1/traces", payload);
+  private void sendHttpRequest(BufferedWriter out, String path, String payload) throws IOException {
+    out.write("POST " + path + " HTTP/1.1\r\n");
+    out.write("Host: " + collectorUri.getHost() + "\r\n");
+    out.write("Content-Type: application/json\r\n");
+    out.write("Content-Length: " + payload.length() + "\r\n");
+    out.write("\r\n");
+    out.write(payload);
+    out.flush();
   }
 
-  private void logError(Exception e, boolean logsOrSpans) {
+  private void sendRequest(String path, String payload) {
+    try {
+      if (currentSocket == null || currentSocket.isClosed()) {
+        createNewSocket();
+      }
+      if (currentSocket != null) {
+        var out = new BufferedWriter(new OutputStreamWriter(currentSocket.getOutputStream()));
+        sendHttpRequest(out, path, payload);
+        Arrays.fill(responseBuff, (byte) 0);
+        currentSocket.getInputStream().read(responseBuff);
+      }
+    } catch (IOException e) {
+      var msg = format(
+        "Failed to send OTEL request: [%s] - %s%n%s",
+        path, e.getMessage(),
+        responseBuff[0] != 0 ? new String(responseBuff).trim() : "?"
+      );
+      err.println(messageFormat(ERROR, currentTimeMillis(), currentThread().getName(), msg));
+      closeCurrentSocket();
+    }
+  }
+
+  private void logError(Exception e, String message) {
     err.println(messageFormat(
       ERROR, currentTimeMillis(), currentThread().getName(),
-      format(
-        "Exception during OTEL %s processing: %s - %s",
-        logsOrSpans ? "logs" : "spans",
-        e.getClass().getSimpleName(), e.getMessage()
-      )
+      format("%s: %s - %s", message, e.getClass().getSimpleName(), e.getMessage())
     ));
     e.printStackTrace(err);
   }
@@ -91,10 +118,11 @@ public class OtHttpSink implements OtSink, ThreadFactory {
       var logBatch = new ArrayList<OtLogRecord>();
       logQueue.drainTo(logBatch);
       if (!logBatch.isEmpty()) {
-        sendLogs(logBatch);
+        var payload = objectWriter.apply(OtContext.logBatchOf(logBatch));
+        sendRequest("/v1/logs", payload);
       }
     } catch (Exception e) {
-      logError(e, true);
+      logError(e, "Log processing failed");
     }
   }
 
@@ -103,23 +131,26 @@ public class OtHttpSink implements OtSink, ThreadFactory {
       var spanBatch = new ArrayList<OtSpan<?>>();
       spanQueue.drainTo(spanBatch);
       if (!spanBatch.isEmpty()) {
-        sendSpans(spanBatch);
+        var payload = objectWriter.apply(OtContext.spanBatchOf(spanBatch));
+        sendRequest("/v1/traces", payload);
       }
     } catch (Exception e) {
-      logError(e, false);
+      logError(e, "Span processing failed");
     }
   }
 
   public OtHttpSink start() {
-    scheduler.scheduleAtFixedRate(() -> workerPool.submit(this::processLogQueue), 0, FlushIntervalMs, TimeUnit.MILLISECONDS);
-    scheduler.scheduleAtFixedRate(() -> workerPool.submit(this::processSpanQueue), 0, FlushIntervalMs, TimeUnit.MILLISECONDS);
+    scheduler.scheduleAtFixedRate(() -> {
+      processLogQueue();
+      processSpanQueue();
+    }, 0, FlushIntervalMs, TimeUnit.MILLISECONDS);
     Runtime.getRuntime().addShutdownHook(newThread(this::shutdown));
     return this;
   }
 
   public void shutdown() {
     scheduler.shutdown();
-    workerPool.shutdown();
+    closeCurrentSocket();
     err.println(messageFormat(
       INFO, currentTimeMillis(), currentThread().getName(),
       "OTEL HTTP Sink stopped."
