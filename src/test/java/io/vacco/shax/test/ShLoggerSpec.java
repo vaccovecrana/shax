@@ -23,7 +23,7 @@ public class ShLoggerSpec {
 
   static {
     if (!GraphicsEnvironment.isHeadless()) {
-      setSysProp(OTEL_EXPORTER_OTLP_ENDPOINT, "https://otlp.vacco.io");
+      setSysProp(OTEL_EXPORTER_OTLP_ENDPOINT, "https://otlp.example.io");
       OtContext.processResource.att(att("deployment.environment", OtValue.val("shax")));
     }
   }
