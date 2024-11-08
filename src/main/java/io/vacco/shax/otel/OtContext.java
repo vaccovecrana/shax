@@ -83,7 +83,7 @@ public class OtContext {
     var pid = runtimeName.split("@")[0];
 
     jvmIdx.put(OtProcessPid, pid);
-    jvmIdx.put(OtServiceInstanceId, Integer.toHexString(Integer.parseInt(pid)));
+    jvmIdx.put(OtServiceInstanceId, Integer.toHexString(runtimeName.hashCode()));
 
     var javaCommand = getProperty("sun.java.command");
     if (javaCommand != null) {
