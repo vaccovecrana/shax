@@ -9,6 +9,6 @@ jobs:
         with:
           orgConfig: https://raw.githubusercontent.com/vaccovecrana/org-config/refs/heads/main/vacco-oss.json
         env:
-          SONATYPE_USER: ${{secrets.SONATYPE_USER}}
-          SONATYPE_PASSWORD: ${{secrets.SONATYPE_PASSWORD}}
+          CENTRAL_PORTAL_USERNAME: ${{secrets.CENTRAL_PORTAL_USERNAME}}
+          CENTRAL_PORTAL_PASSWORD: ${{secrets.CENTRAL_PORTAL_PASSWORD}}
           MAVEN_SIGNING_PRV: ${{secrets.MAVEN_SIGNING_PRV}}
