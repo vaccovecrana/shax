@@ -115,7 +115,7 @@ public class OtContext {
     return jvmIdx;
   }
 
-  public static void init(String otUrl) {
+  public static void init(String otUrl) { // TODO pass a map of headers to be included with each batch request for the collector endpoint.
     if (otUrl != null && sink == null) {
       sink = new OtHttpSink(URI.create(otUrl)).start();
     }

@@ -9,6 +9,8 @@ import java.util.*;
 @SuppressWarnings("serial")
 public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
+  private static final ZoneId UTC = ZoneId.of("UTC");
+
   public transient Throwable      throwable;
   public transient ShLogLevel     level;
   public transient ZonedDateTime  utc;
@@ -19,13 +21,13 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
   public static ShLogRecord from(ShLogConfig config, String message, String logName,
                                  ShLogLevel logLevel, Throwable t, ShArgument... args) {
     var r = new ShLogRecord();
-    r.utc = ZonedDateTime.now(ZoneId.of("UTC"));
+    r.utc = ZonedDateTime.now(UTC);
     r.level = logLevel;
     r.kvArgs = args;
     r.message = message;
     r.logName = Objects.requireNonNull(logName);
     r.threadName = Thread.currentThread().getName();
-    r.threadId = (int) Thread.currentThread().getId();
+    r.threadId = Thread.currentThread().getName().hashCode();
 
     if (config.showDateTime) {
       r.put(ShField.utc.name(), DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(r.utc));

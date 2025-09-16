@@ -14,7 +14,7 @@ Pull the following dependency into your project (available in [Maven Central](ht
 
     implementation("io.vacco.shax:shax:<VERSION>")
 
-> Note: All `shax` releases align to the `slf4j-api` version they were compiled against.
+> Note: All `shax` releases align to the `slf4j-api` version they were compiled against, plus a single build number.
 > Make sure to exclude other SLF4J bindings in your class path, otherwise `slf4j` will complain.
 
 Your regular SLF4J logging statements are exactly the same, but will now look like this (single-line version):
