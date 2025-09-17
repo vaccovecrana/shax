@@ -57,7 +57,7 @@ public class ShLogConfig {
       }
     });
 
-    OtContext.init(c.otUrl);
+    OtContext.init(c.otUrl, c.otHeaders, c.otTimeoutMs);
     return c;
   }
 

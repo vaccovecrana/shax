@@ -23,7 +23,9 @@ public class ShLoggerSpec {
 
   static {
     if (!GraphicsEnvironment.isHeadless()) {
-      setSysProp(OTEL_EXPORTER_OTLP_ENDPOINT, "https://otlp.example.io");
+      setSysProp(OTEL_EXPORTER_OTLP_ENDPOINT, "http://172.16.2.70:4318");
+      setSysProp(OTEL_EXPORTER_OTLP_HEADERS, "api-key=key,other-config-value=value");
+      setSysProp(OTEL_EXPORTER_OTLP_TIMEOUT, "4000");
       OtContext.processResource.att(att("deployment.environment", OtValue.val("shax")));
     }
   }

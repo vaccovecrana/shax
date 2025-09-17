@@ -86,7 +86,7 @@ public class OtHttpSink implements OtSink, ThreadFactory {
     out.write("Content-Type: application/json\r\n");
     out.write("Content-Length: " + payload.length() + "\r\n");
     for (var e : headers.entrySet()) {
-      out.write(e.getKey() + ": " + e.getValue());
+      out.write(e.getKey() + ": " + e.getValue() + "\r\n");
     }
     out.write("\r\n");
     out.write(payload);
