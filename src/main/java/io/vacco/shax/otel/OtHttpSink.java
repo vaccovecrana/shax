@@ -18,11 +18,19 @@ import static io.vacco.shax.logging.ShLogLevel.*;
 
 public class OtHttpSink implements OtSink, ThreadFactory {
 
+  public static final int TimeoutDefaultMs = 10_000;
+
   private static final String OtThread = "otel-http-sink";
 
-  private static int      FlushIntervalMs = 5000;
-  private static Duration ClientTimeout   = Duration.ofSeconds(3);
+  private static final int    FlushIntervalMinMs = 500;
+  private static final int    FlushIntervalMaxMs = 5000;
+  private static final double OverheadPercent    = 0.15; // 25% overhead
+  private static final double IntervalRatio      = 0.1;  // For ~10 cycles
 
+  private final int flushIntervalMs;
+  private final Duration clientTimeout;
+
+  private final Map<String, String>         headers;
   private final ShObjectWriter              objectWriter = new ShObjectWriter(true, false);
   private final BlockingQueue<OtLogRecord>  logQueue = new LinkedBlockingQueue<>();
   private final BlockingQueue<OtSpan<?>>    spanQueue = new LinkedBlockingQueue<>();
@@ -32,8 +40,14 @@ public class OtHttpSink implements OtSink, ThreadFactory {
 
   private volatile Socket currentSocket = null;
 
-  public OtHttpSink(URI collectorUri) {
-    this.collectorUri = collectorUri;
+  public OtHttpSink(URI collectorUri, Map<String, String> headers, int timeoutMs) {
+    this.collectorUri = Objects.requireNonNull(collectorUri);
+    this.headers = Objects.requireNonNull(headers);
+    int overheadMs = (int) (timeoutMs * OverheadPercent);
+    int cycleTimeMs = Math.max(0, timeoutMs - overheadMs);
+    int intervalMs = (int) (cycleTimeMs * IntervalRatio);
+    this.flushIntervalMs = Math.max(FlushIntervalMinMs, Math.min(FlushIntervalMaxMs, intervalMs));
+    this.clientTimeout = Duration.ofMillis(Math.min(timeoutMs / 3, timeoutMs - 1000));
   }
 
   @Override public Thread newThread(Runnable r) {
@@ -52,25 +66,18 @@ public class OtHttpSink implements OtSink, ThreadFactory {
     }
   }
 
-  private void createNewSocket() {
-    try {
-      var scheme = collectorUri.getScheme();
-      var isHttps = "https".equalsIgnoreCase(scheme);
-      int port = collectorUri.getPort() == -1
-        ? (isHttps ? 443 : 80)
-        : collectorUri.getPort();
-      if (isHttps) {
-        var sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-        currentSocket = sslSocketFactory.createSocket();
-      } else {
-        currentSocket = new Socket();
-      }
-      currentSocket.connect(new InetSocketAddress(collectorUri.getHost(), port), (int) ClientTimeout.toMillis());
-      currentSocket.setSoTimeout((int) ClientTimeout.toMillis());
-    } catch (IOException e) {
-      logError(e, "Failed to create Socket");
-      closeCurrentSocket();
+  private void createNewSocket() throws IOException {
+    var scheme = collectorUri.getScheme();
+    var isHttps = "https".equalsIgnoreCase(scheme);
+    int port = collectorUri.getPort() == -1 ? (isHttps ? 443 : 80) : collectorUri.getPort();
+    if (isHttps) {
+      var sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+      currentSocket = sslSocketFactory.createSocket();
+    } else {
+      currentSocket = new Socket();
     }
+    currentSocket.connect(new InetSocketAddress(collectorUri.getHost(), port), (int) clientTimeout.toMillis());
+    currentSocket.setSoTimeout((int) clientTimeout.toMillis());
   }
 
   private void sendHttpRequest(BufferedWriter out, String path, String payload) throws IOException {
@@ -78,6 +85,9 @@ public class OtHttpSink implements OtSink, ThreadFactory {
     out.write("Host: " + collectorUri.getHost() + "\r\n");
     out.write("Content-Type: application/json\r\n");
     out.write("Content-Length: " + payload.length() + "\r\n");
+    for (var e : headers.entrySet()) {
+      out.write(e.getKey() + ": " + e.getValue());
+    }
     out.write("\r\n");
     out.write(payload);
     out.flush();
@@ -85,9 +95,7 @@ public class OtHttpSink implements OtSink, ThreadFactory {
 
   private void sendRequest(String path, String payload) {
     try {
-      if (currentSocket == null || currentSocket.isClosed()) {
-        createNewSocket();
-      }
+      if (currentSocket == null || currentSocket.isClosed()) createNewSocket();
       if (currentSocket != null) {
         var out = new BufferedWriter(new OutputStreamWriter(currentSocket.getOutputStream()));
         sendHttpRequest(out, path, payload);
@@ -95,11 +103,8 @@ public class OtHttpSink implements OtSink, ThreadFactory {
         currentSocket.getInputStream().read(responseBuff);
       }
     } catch (IOException e) {
-      var msg = format(
-        "Failed to send OTEL request: [%s] - %s%n%s",
-        path, e.getMessage(),
-        responseBuff[0] != 0 ? new String(responseBuff).trim() : "?"
-      );
+      var msg = format("Failed to send OTEL request: [%s] - %s%n%s", path, e.getMessage(),
+        responseBuff[0] != 0 ? new String(responseBuff).trim() : "?");
       err.println(messageFormat(ERROR, currentTimeMillis(), currentThread().getName(), msg));
       closeCurrentSocket();
     }
@@ -143,7 +148,7 @@ public class OtHttpSink implements OtSink, ThreadFactory {
     scheduler.scheduleAtFixedRate(() -> {
       processLogQueue();
       processSpanQueue();
-    }, 0, FlushIntervalMs, TimeUnit.MILLISECONDS);
+    }, 0, flushIntervalMs, TimeUnit.MILLISECONDS);
     Runtime.getRuntime().addShutdownHook(newThread(this::shutdown));
     return this;
   }

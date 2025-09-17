@@ -1,16 +1,19 @@
 package io.vacco.shax.logging;
 
 import io.vacco.shax.json.ShObjectWriter;
-import io.vacco.shax.otel.OtContext;
+import io.vacco.shax.otel.*;
 import java.util.*;
 import java.util.function.Function;
 
 import static java.lang.System.*;
 import static java.lang.Boolean.parseBoolean;
+import static java.lang.Integer.parseInt;
 
 public class ShLogConfig {
 
-  public String otUrl;
+  public String otUrl, otHeaders;
+  public Integer otTimeoutMs;
+
   public ShLogLevel defaultLogLevel;
   public Map<String, ShLogLevel> logLevels = new HashMap<>();
 
@@ -32,6 +35,8 @@ public class ShLogConfig {
     c.prettyPrint = loadProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, Boolean::parseBoolean);
     c.devMode = loadProp(ShOption.IO_VACCO_SHAX_DEVMODE, Boolean::parseBoolean);
     c.otUrl = loadProp(ShOption.OTEL_EXPORTER_OTLP_ENDPOINT, Function.identity());
+    c.otHeaders = loadProp(ShOption.OTEL_EXPORTER_OTLP_HEADERS, Function.identity());
+    c.otTimeoutMs = loadProp(ShOption.OTEL_EXPORTER_OTLP_TIMEOUT, v -> v == null ? OtHttpSink.TimeoutDefaultMs : parseInt(v));
 
     getenv().forEach((k, v) -> {
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.name())) {
