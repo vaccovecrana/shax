@@ -35,6 +35,8 @@ public class OtHttpSink implements OtSink, ThreadFactory {
   private final BlockingQueue<OtLogRecord>  logQueue = new LinkedBlockingQueue<>();
   private final BlockingQueue<OtSpan<?>>    spanQueue = new LinkedBlockingQueue<>();
   private final URI                         collectorUri;
+
+  @SuppressWarnings("this-escape")
   private final ScheduledExecutorService    scheduler = Executors.newSingleThreadScheduledExecutor(this);
   private final byte[]                      responseBuff = new byte[2048];
 
