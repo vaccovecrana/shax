@@ -56,6 +56,13 @@ public class OtHttpSink implements OtSink, ThreadFactory {
     return new Thread(r, format("%s-%s", OtThread, toHexString(r.hashCode())));
   }
 
+  private void logError(Exception e, String message) {
+    err.println(messageFormat(
+      ERROR, currentTimeMillis(), currentThread().getName(),
+      format("%s: %s - %s", message, e.getClass().getSimpleName(), e.getMessage())
+    ));
+  }
+
   private void closeCurrentSocket() {
     try {
       if (currentSocket != null) {
@@ -127,22 +134,12 @@ public class OtHttpSink implements OtSink, ThreadFactory {
         }
       }
     } catch (Exception e) {
-      var msg = format(
-        "Failed to send OTEL request: [%s] - %s%n%s",
-        path, e.getMessage(), new String(responseBuff).trim()
-      );
-      err.println(messageFormat(ERROR, currentTimeMillis(), currentThread().getName(), msg));
+      var res = new String(responseBuff).trim();
+      var msg = format("Failed to send OTEL request: [%s]%n%s", path, res);
+      logError(e, msg);
       closeCurrentSocket();
       throw e;
     }
-  }
-
-  private void logError(Exception e, String message) {
-    err.println(messageFormat(
-      ERROR, currentTimeMillis(), currentThread().getName(),
-      format("%s: %s - %s", message, e.getClass().getSimpleName(), e.getMessage())
-    ));
-    e.printStackTrace(err);
   }
 
   private void processLogQueue() {
