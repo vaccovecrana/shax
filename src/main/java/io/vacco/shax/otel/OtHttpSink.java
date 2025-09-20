@@ -25,7 +25,7 @@ public class OtHttpSink implements OtSink, ThreadFactory {
   private static final int    FlushIntervalMinMs = 500;
   private static final int    FlushIntervalMaxMs = 5000;
   private static final double OverheadPercent    = 0.15; // 25% overhead
-  private static final double IntervalRatio      = 0.1;  // For ~10 cycles
+  private static final double IntervalRatio      = 0.25;
 
   private final int flushIntervalMs;
   private final Duration clientTimeout;
