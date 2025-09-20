@@ -3,7 +3,7 @@ package io.vacco.shax.otel;
 import io.vacco.shax.json.ShObjectWriter;
 import io.vacco.shax.otel.schema.OtValue;
 import java.time.Instant;
-import java.util.Random;
+import java.util.*;
 
 import static io.vacco.shax.json.ShReflect.toWrapperClass;
 import static io.vacco.shax.otel.schema.OtValue.val;
@@ -50,6 +50,31 @@ public class OtUtil {
     } else {
       return val(ow.apply(o), null, null, null, null, null);
     }
+  }
+
+  public static String[] argOf(String arg) {
+    var sep = arg.indexOf("=");
+    if (sep == -1) {
+      return new String[] { arg };
+    }
+    var a0 = new String[2];
+    a0[0] = arg.substring(0, sep);
+    a0[1] = arg.substring(sep + 1);
+    return a0;
+  }
+
+  public static Map<String, String> otHeadersOf(String raw) {
+    if (raw == null || raw.trim().isEmpty()) {
+      return new HashMap<>();
+    }
+    var args = raw.split(",");
+    return Arrays.stream(args)
+      .map(OtUtil::argOf)
+      .collect(
+        HashMap::new,
+        (m, v) -> m.put(v[0], v.length == 1 ? null : v[1]),
+        HashMap::putAll
+      );
   }
 
 }

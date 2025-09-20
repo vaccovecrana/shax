@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: vaccovecrana/gitflow-oss-java-slim@1.5.4
+      - uses: vaccovecrana/gitflow-oss-java-slim@1.8.3
         with:
           orgConfig: https://raw.githubusercontent.com/vaccovecrana/org-config/refs/heads/main/vacco-oss.json
         env:

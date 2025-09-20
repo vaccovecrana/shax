@@ -14,7 +14,7 @@ Pull the following dependency into your project (available in [Maven Central](ht
 
     implementation("io.vacco.shax:shax:<VERSION>")
 
-> Note: All `shax` releases align to the `slf4j-api` version they were compiled against.
+> Note: All `shax` releases align to the `slf4j-api` version they were compiled against, plus a single build number.
 > Make sure to exclude other SLF4J bindings in your class path, otherwise `slf4j` will complain.
 
 Your regular SLF4J logging statements are exactly the same, but will now look like this (single-line version):
@@ -137,12 +137,23 @@ Neat!
 
 Pass in the following `Environment` or `System`  properties to configure:
 
-- `IO_VACCO_SHAX_DEVMODE` or `io.vacco.shax.devmode` to display messages like [pino-pretty](https://github.com/pinojs/pino-pretty) would. Defaults to `false`.
-- `IO_VACCO_SHAX_SHOWDATETIME` or `io.vacco.shax.showdatetime` to display or hide UTC times. Defaults to `true`.
-- `IO_VACCO_SHAX_LOGLEVEL` or `io.vacco.shax.loglevel` to set the root logger level. Defaults to `INFO`.
-- `IO_VACCO_SHAX_PRETTYPRINT` or `io.vacco.shax.prettyprint`, `true` to output formatted JSON, `false` to output a single line. Defaults to `false`.
-- `IO_VACCO_SHAX_LOGGER_X_Y_Z` or `io.vacco.shax.logger.x.y.z` (multiple times with different values) to set individual logger namespace levels.
-- `OTEL_EXPORTER_OTLP_ENDPOINT` or `otel.exporter.otlp.endpoint` to forward JSON logs and traces to an OTEL collector. Example: `https://otel.example.io`.
+> Note: these properties can also be specified as System properties (i.e. `otel.exporter.otlp.endpoint`).
+
+- `IO_VACCO_SHAX_DEVMODE` - toggle message display like [pino-pretty](https://github.com/pinojs/pino-pretty). Default `false`.
+- `IO_VACCO_SHAX_SHOWDATETIME` - display or hide UTC times. Default `true`.
+- `IO_VACCO_SHAX_LOGLEVEL` - set the root logger level. Default `INFO`.
+- `IO_VACCO_SHAX_PRETTYPRINT` - `true` to output formatted JSON, `false` to output a single line. Default `false`.
+- `IO_VACCO_SHAX_LOGGER_X_Y_Z` - (multiple times with different values) to set individual logger namespace levels.
+
+## OpenTelemetry integration
+
+Shax can relay log data to an OTEL compatible collector, using a subset of the [OTEL reference properties](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/).
+
+> Note: Only the `OTLP/HTTP + JSON` protocol is supported.
+
+- `OTEL_EXPORTER_OTLP_ENDPOINT` - the OTEL collector root endpoint. Example: `https://otel.example.io`.
+- `OTEL_EXPORTER_OTLP_TIMEOUT` - timeout value for all outgoing data (traces, metrics, and logs) in milliseconds. Default `10_000`.
+- `OTEL_EXPORTER_OTLP_HEADERS` - a list of headers to apply to all outgoing data (traces, metrics, and logs). Default empty. Example: `export OTEL_EXPORTER_OTLP_HEADERS="api-key=key,other-config-value=value"`
 
 > Note: `shax` will search for `Environment` variables, then `System` properties to load these values.
 
