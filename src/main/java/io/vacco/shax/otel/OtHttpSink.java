@@ -95,20 +95,45 @@ public class OtHttpSink implements OtSink, ThreadFactory {
     out.flush();
   }
 
-  private void sendRequest(String path, String payload) {
+  private int parseHttpStatus(String response) {
+    if (response == null || response.isEmpty()) {
+      return -1;
+    }
+    var firstLine = response.split("\n")[0].trim();
+    var parts = firstLine.split("\\s+");
+    if (parts.length >= 2) {
+      try {
+        return Integer.parseInt(parts[1]);
+      } catch (NumberFormatException ignored) {}
+    }
+    return -1;
+  }
+
+  private void sendRequest(String path, String payload) throws Exception {
     try {
-      if (currentSocket == null || currentSocket.isClosed()) createNewSocket();
+      if (currentSocket == null || currentSocket.isClosed()) {
+        createNewSocket();
+      }
       if (currentSocket != null) {
         var out = new BufferedWriter(new OutputStreamWriter(currentSocket.getOutputStream()));
         sendHttpRequest(out, path, payload);
         Arrays.fill(responseBuff, (byte) 0);
-        currentSocket.getInputStream().read(responseBuff);
+        if (currentSocket.getInputStream().read(responseBuff) > 0) {
+          var responseStr = new String(responseBuff).trim();
+          int statusCode = parseHttpStatus(responseStr);
+          if (statusCode < 200 || statusCode >= 300) {
+            throw new IOException(format("HTTP error response: [%d] %s", statusCode, responseStr));
+          }
+        }
       }
-    } catch (IOException e) {
-      var msg = format("Failed to send OTEL request: [%s] - %s%n%s", path, e.getMessage(),
-        responseBuff[0] != 0 ? new String(responseBuff).trim() : "?");
+    } catch (Exception e) {
+      var msg = format(
+        "Failed to send OTEL request: [%s] - %s%n%s",
+        path, e.getMessage(), new String(responseBuff).trim()
+      );
       err.println(messageFormat(ERROR, currentTimeMillis(), currentThread().getName(), msg));
       closeCurrentSocket();
+      throw e;
     }
   }
 
@@ -121,8 +146,8 @@ public class OtHttpSink implements OtSink, ThreadFactory {
   }
 
   private void processLogQueue() {
+    var logBatch = new ArrayList<OtLogRecord>();
     try {
-      var logBatch = new ArrayList<OtLogRecord>();
       logQueue.drainTo(logBatch);
       if (!logBatch.isEmpty()) {
         var payload = objectWriter.apply(OtContext.logBatchOf(logBatch));
@@ -130,12 +155,13 @@ public class OtHttpSink implements OtSink, ThreadFactory {
       }
     } catch (Exception e) {
       logError(e, "Log processing failed");
+      logQueue.addAll(logBatch);
     }
   }
 
   private void processSpanQueue() {
+    var spanBatch = new ArrayList<OtSpan<?>>();
     try {
-      var spanBatch = new ArrayList<OtSpan<?>>();
       spanQueue.drainTo(spanBatch);
       if (!spanBatch.isEmpty()) {
         var payload = objectWriter.apply(OtContext.spanBatchOf(spanBatch));
@@ -143,6 +169,7 @@ public class OtHttpSink implements OtSink, ThreadFactory {
       }
     } catch (Exception e) {
       logError(e, "Span processing failed");
+      spanQueue.addAll(spanBatch);
     }
   }
 
