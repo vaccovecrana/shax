@@ -48,7 +48,7 @@ public class ShLogConfig {
     });
 
     getProperties().forEach((k0, v0) -> {
-      var k = k0.toString().toLowerCase().trim();
+      var k = k0.toString().trim();
       if (k.startsWith(ShOption.IO_VACCO_SHAX_LOGGER.asSysProp())) {
         var logName = k
           .replace(ShOption.IO_VACCO_SHAX_LOGGER.asSysProp(), "")
