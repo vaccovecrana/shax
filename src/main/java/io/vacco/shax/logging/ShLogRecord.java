@@ -1,6 +1,6 @@
 package io.vacco.shax.logging;
 
-import io.vacco.shax.otel.schema.OtSpan;
+import io.vacco.shax.otel.OtSchema;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -42,7 +42,7 @@ public final class ShLogRecord extends LinkedHashMap<String, Object> {
 
     if (t != null) {
       r.throwable = t;
-      r.put(ShField.stack_trace.name(), OtSpan.stackTraceOf(t));
+      r.put(ShField.stack_trace.name(), OtSchema.Span.stackTraceOf(t));
     }
     if (args != null) {
       for (var arg : args) {

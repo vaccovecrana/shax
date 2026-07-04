@@ -2,29 +2,32 @@ package io.vacco.shax.test;
 
 import io.vacco.shax.json.ShObjectWriter;
 import io.vacco.shax.otel.OtContext;
-import io.vacco.shax.otel.schema.OtStatusCode;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import java.util.HashMap;
 
-import static io.vacco.shax.otel.schema.OtConstants.*;
+import static io.vacco.shax.otel.OtSchema.*;
 import static io.vacco.shax.otel.OtUtil.*;
-import static io.vacco.shax.otel.schema.OtAttribute.att;
-import static io.vacco.shax.otel.schema.OtLogRecord.otLogRecord;
-import static io.vacco.shax.otel.schema.OtResourceLog.otResourceLog;
-import static io.vacco.shax.otel.schema.OtResourceSpan.otResourceSpan;
-import static io.vacco.shax.otel.schema.OtResource.otResource;
-import static io.vacco.shax.otel.schema.OtScopeLog.otScopeLog;
-import static io.vacco.shax.otel.schema.OtScopeSpan.otScopeSpan;
-import static io.vacco.shax.otel.schema.OtScope.otScope;
-import static io.vacco.shax.otel.schema.OtSpan.otSpan;
-import static io.vacco.shax.otel.schema.OtSpanKind.*;
-import static io.vacco.shax.otel.schema.OtStatus.otStatus;
-import static io.vacco.shax.otel.schema.OtBatch.otBatch;
-import static io.vacco.shax.otel.schema.OtValue.val;
+import static io.vacco.shax.otel.OtSchema.Attribute.att;
+import static io.vacco.shax.otel.OtSchema.LogRecord.otLogRecord;
+import static io.vacco.shax.otel.OtSchema.ResourceLog.otResourceLog;
+import static io.vacco.shax.otel.OtSchema.ResourceSpan.otResourceSpan;
+import static io.vacco.shax.otel.OtSchema.Resource.otResource;
+import static io.vacco.shax.otel.OtSchema.ScopeLog.otScopeLog;
+import static io.vacco.shax.otel.OtSchema.ScopeSpan.otScopeSpan;
+import static io.vacco.shax.otel.OtSchema.Scope.otScope;
+import static io.vacco.shax.otel.OtSchema.Span.otSpan;
+import static io.vacco.shax.otel.OtSchema.SpanKind.*;
+import static io.vacco.shax.otel.OtSchema.Batch.otBatch;
+import static io.vacco.shax.otel.OtSchema.Value.val;
 import static j8spec.J8Spec.*;
 import static org.junit.Assert.*;
+
+
+/* ==================================================================== */
+/* TODO: Add a test loopback HTTP server that acts as a dummy OTEL sink */
+/* ==================================================================== */
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)

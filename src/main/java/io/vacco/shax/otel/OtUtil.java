@@ -1,12 +1,12 @@
 package io.vacco.shax.otel;
 
 import io.vacco.shax.json.ShObjectWriter;
-import io.vacco.shax.otel.schema.OtValue;
+
 import java.time.Instant;
 import java.util.*;
 
 import static io.vacco.shax.json.ShReflect.toWrapperClass;
-import static io.vacco.shax.otel.schema.OtValue.val;
+import static io.vacco.shax.otel.OtSchema.Value.val;
 
 public class OtUtil {
 
@@ -30,7 +30,7 @@ public class OtUtil {
     return String.format("%016x", r.nextLong());
   }
 
-  public static OtValue valueOf(Object o) {
+  public static OtSchema.Value valueOf(Object o) {
     if (o == null) {
       return val(null, null, null, null, null, null);
     }

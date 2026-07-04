@@ -2,9 +2,7 @@ package io.vacco.shax.test;
 
 import io.vacco.shax.logging.*;
 import io.vacco.shax.otel.OtContext;
-import io.vacco.shax.otel.schema.OtSpan;
-import io.vacco.shax.otel.schema.OtSpanKind;
-import io.vacco.shax.otel.schema.OtValue;
+import io.vacco.shax.otel.OtSchema;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
@@ -14,7 +12,7 @@ import java.awt.GraphicsEnvironment;
 import static io.vacco.shax.json.ShMaps.*;
 import static io.vacco.shax.logging.ShOption.*;
 import static io.vacco.shax.logging.ShArgument.kv;
-import static io.vacco.shax.otel.schema.OtAttribute.att;
+import static io.vacco.shax.otel.OtSchema.Attribute.att;
 import static j8spec.J8Spec.*;
 import static org.junit.Assert.*;
 
@@ -27,7 +25,7 @@ public class ShLoggerSpec {
       setSysProp(OTEL_EXPORTER_OTLP_ENDPOINT, "http://172.16.2.70:4318");
       setSysProp(OTEL_EXPORTER_OTLP_HEADERS, "api-key=key,other-config-value=value");
       setSysProp(OTEL_EXPORTER_OTLP_TIMEOUT, "4000");
-      OtContext.processResource.att(att("deployment.environment", OtValue.val("shax")));
+      OtContext.processResource.att(att("deployment.environment", OtSchema.Value.val("shax")));
     }
   }
 
@@ -158,9 +156,9 @@ public class ShLoggerSpec {
   }
 
   private static Integer superComputeStuff() {
-    OtSpan<Integer> lol = OtContext.span(OtSpanKind.SPAN_KIND_INTERNAL, sp -> {
+    OtSchema.Span<Integer> lol = OtContext.span(OtSchema.SpanKind.SPAN_KIND_INTERNAL, sp -> {
       var meaningOfUniverse = "MOMOMOMOMOMO";
-      OtSpan<String> lol1 = OtContext.span(sp, OtSpanKind.SPAN_KIND_CLIENT, sp1 -> {
+      OtSchema.Span<String> lol1 = OtContext.span(sp, OtSchema.SpanKind.SPAN_KIND_CLIENT, sp1 -> {
         Thread.sleep(2500);
         return sp1
             .att("TheSuperComputeResult", meaningOfUniverse)

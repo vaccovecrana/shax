@@ -1,26 +1,26 @@
 package io.vacco.shax.otel;
 
 import io.vacco.shax.logging.*;
-import io.vacco.shax.otel.schema.*;
+
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.*;
 import java.util.*;
 
 import static io.vacco.shax.logging.ShLogger.messageFormat;
-import static io.vacco.shax.otel.schema.OtConstants.*;
-import static io.vacco.shax.otel.schema.OtBatch.otBatch;
-import static io.vacco.shax.otel.schema.OtResource.otResource;
-import static io.vacco.shax.otel.schema.OtResourceLog.otResourceLog;
-import static io.vacco.shax.otel.schema.OtResourceSpan.otResourceSpan;
-import static io.vacco.shax.otel.schema.OtScope.otScope;
-import static io.vacco.shax.otel.schema.OtScopeLog.otScopeLog;
-import static io.vacco.shax.otel.schema.OtScopeSpan.otScopeSpan;
-import static io.vacco.shax.otel.schema.OtSpan.otSpan;
+import static io.vacco.shax.otel.OtSchema.*;
+import static io.vacco.shax.otel.OtSchema.Batch.otBatch;
+import static io.vacco.shax.otel.OtSchema.Resource.otResource;
+import static io.vacco.shax.otel.OtSchema.ResourceLog.otResourceLog;
+import static io.vacco.shax.otel.OtSchema.ResourceSpan.otResourceSpan;
+import static io.vacco.shax.otel.OtSchema.Scope.otScope;
+import static io.vacco.shax.otel.OtSchema.ScopeLog.otScopeLog;
+import static io.vacco.shax.otel.OtSchema.ScopeSpan.otScopeSpan;
+import static io.vacco.shax.otel.OtSchema.Span.otSpan;
 import static io.vacco.shax.otel.OtUtil.*;
-import static io.vacco.shax.otel.schema.OtValue.val;
-import static io.vacco.shax.otel.schema.OtAttribute.att;
-import static io.vacco.shax.otel.schema.OtLogRecord.otLogRecord;
+import static io.vacco.shax.otel.OtSchema.Value.val;
+import static io.vacco.shax.otel.OtSchema.Attribute.att;
+import static io.vacco.shax.otel.OtSchema.LogRecord.otLogRecord;
 import static java.lang.System.*;
 import static java.lang.Thread.currentThread;
 import static java.net.InetAddress.getLocalHost;
@@ -30,8 +30,8 @@ public class OtContext {
 
   public static final String OtPrefix = "OT_";
   public static final Map<String, String> otSysIdx = new LinkedHashMap<>();
-  public static final OtResource processResource;
-  public static final OtScope processScope;
+  public static final Resource processResource;
+  public static final Scope processScope;
 
   public static OtSink sink;
 
@@ -125,7 +125,7 @@ public class OtContext {
     }
   }
 
-  public static OtLogRecord mapFrom(ShLogRecord lr) {
+  public static LogRecord mapFrom(ShLogRecord lr) {
     var ns = msToNs(lr.utcMs());
     var lvn = String.format("SEVERITY_NUMBER_%s", lr.level);
     var otLr = otLogRecord(ns, lvn, lr.level.name())
@@ -142,7 +142,7 @@ public class OtContext {
     return otLr;
   }
 
-  public static OtBatch logBatchOf(List<OtLogRecord> logs) {
+  public static Batch logBatchOf(List<LogRecord> logs) {
     var scopeLog = otScopeLog(processScope);
     for (var lr : logs) {
       scopeLog.logRecord(lr);
@@ -150,7 +150,7 @@ public class OtContext {
     return otBatch().resourceLog(otResourceLog(processResource).scopeLog(scopeLog));
   }
 
-  public static OtBatch spanBatchOf(List<OtSpan<?>> spans) {
+  public static Batch spanBatchOf(List<Span<?>> spans) {
     var scopeSpan = otScopeSpan(processScope);
     for (var sr : spans) {
       scopeSpan.span(sr);
@@ -158,7 +158,7 @@ public class OtContext {
     return otBatch().resourceSpan(otResourceSpan(processResource).scopeSpan(scopeSpan));
   }
 
-  public static <K> OtSpan<K> span(OtSpan<?> parent, OtSpanKind kind, OtFn<OtSpan<K>, OtSpan<K>> op) {
+  public static <K> Span<K> span(Span<?> parent, SpanKind kind, OtFn<Span<K>, Span<K>> op) {
     var m = "?";
     var stackTrace = Thread.currentThread().getStackTrace();
     for (int i = 1; i < stackTrace.length; i++) {
@@ -168,7 +168,7 @@ public class OtContext {
       }
     }
     var t = parent != null ? parent.traceId : traceId();
-    OtSpan<K> s = otSpan(t, spanId(), m, requireNonNull(kind));
+    Span<K> s = otSpan(t, spanId(), m, requireNonNull(kind));
     try {
       if (parent != null) {
         s.parentSpanId(parent.spanId);
@@ -185,7 +185,7 @@ public class OtContext {
     } finally {
       s.end(nowNs());
       if (s.status == null) {
-        s.status = OtStatus.otStatus(OtStatusCode.STATUS_CODE_UNSET);
+        s.status = Status.otStatus(StatusCode.STATUS_CODE_UNSET);
       }
       if (sink != null) {
         sink.accept(s);
@@ -193,7 +193,7 @@ public class OtContext {
     }
   }
 
-  public static <K> OtSpan<K> span(OtSpanKind kind, OtFn<OtSpan<K>, OtSpan<K>> op) {
+  public static <K> Span<K> span(SpanKind kind, OtFn<Span<K>, Span<K>> op) {
     return span(null, kind, op);
   }
 

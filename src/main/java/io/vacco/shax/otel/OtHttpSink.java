@@ -1,7 +1,7 @@
 package io.vacco.shax.otel;
 
 import io.vacco.shax.json.ShObjectWriter;
-import io.vacco.shax.otel.schema.*;
+
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.*;
@@ -32,8 +32,8 @@ public class OtHttpSink implements OtSink, ThreadFactory {
 
   private final Map<String, String>         headers;
   private final ShObjectWriter              objectWriter = new ShObjectWriter(true, false);
-  private final BlockingQueue<OtLogRecord>  logQueue = new LinkedBlockingQueue<>();
-  private final BlockingQueue<OtSpan<?>>    spanQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<OtSchema.LogRecord>  logQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<OtSchema.Span<?>>    spanQueue = new LinkedBlockingQueue<>();
   private final URI                         collectorUri;
 
   @SuppressWarnings("this-escape")
@@ -143,7 +143,7 @@ public class OtHttpSink implements OtSink, ThreadFactory {
   }
 
   private void processLogQueue() {
-    var logBatch = new ArrayList<OtLogRecord>();
+    var logBatch = new ArrayList<OtSchema.LogRecord>();
     try {
       logQueue.drainTo(logBatch);
       if (!logBatch.isEmpty()) {
@@ -157,7 +157,7 @@ public class OtHttpSink implements OtSink, ThreadFactory {
   }
 
   private void processSpanQueue() {
-    var spanBatch = new ArrayList<OtSpan<?>>();
+    var spanBatch = new ArrayList<OtSchema.Span<?>>();
     try {
       spanQueue.drainTo(spanBatch);
       if (!spanBatch.isEmpty()) {
@@ -188,11 +188,11 @@ public class OtHttpSink implements OtSink, ThreadFactory {
     ));
   }
 
-  @Override public void accept(OtSpan<?> sp) {
+  @Override public void accept(OtSchema.Span<?> sp) {
     spanQueue.offer(sp);
   }
 
-  @Override public void accept(OtLogRecord lr) {
+  @Override public void accept(OtSchema.LogRecord lr) {
     logQueue.offer(lr);
   }
 
