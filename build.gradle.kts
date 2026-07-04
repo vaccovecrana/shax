@@ -1,4 +1,4 @@
-plugins { id("io.vacco.oss.gitflow") version "1.8.3" }
+plugins { id("io.vacco.oss.gitflow") version "1.9.0" }
 
 var slf4j = "2.0.18"
 
