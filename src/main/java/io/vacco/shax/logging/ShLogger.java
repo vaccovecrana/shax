@@ -72,12 +72,13 @@ public class ShLogger extends LegacyAbstractLogger {
     var kvArgs = Arrays.stream(tp.getArgArray() != null ? tp.getArgArray() : new Object[]{})
       .filter(o -> o instanceof ShArgument)
       .toArray(ShArgument[]::new);
-    var shLevel = switch (level) {
-      case TRACE -> TRACE;
-      case DEBUG -> DEBUG;
-      case INFO  -> INFO;
-      case WARN  -> WARN;
-      case ERROR -> ERROR;
+    var shLevel = (ShLogLevel) null;
+    switch (level) {
+      case TRACE: shLevel = TRACE; break;
+      case DEBUG: shLevel = DEBUG; break;
+      case INFO:  shLevel = INFO;  break;
+      case WARN:  shLevel = WARN;  break;
+      case ERROR: shLevel = ERROR; break;
     };
     var r = ShLogRecord.from(
       logConfig, tp.getMessage(), this.name, shLevel,
