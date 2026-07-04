@@ -1,7 +1,9 @@
 plugins { id("io.vacco.oss.gitflow") version "1.8.3" }
 
+var slf4j = "2.0.18"
+
 group = "io.vacco.shax"
-version = "2.0.17.2"
+version = "${slf4j}.0"
 
 configure<io.vacco.oss.gitflow.GsPluginProfileExtension> {
   addJ8Spec()
@@ -11,7 +13,7 @@ configure<io.vacco.oss.gitflow.GsPluginProfileExtension> {
 
 val api by configurations
 
-dependencies { api("org.slf4j:slf4j-api:2.0.17") }
+dependencies { api("org.slf4j:slf4j-api:${slf4j}") }
 
 tasks.processResources {
   filesMatching("io/vacco/shax/version") {

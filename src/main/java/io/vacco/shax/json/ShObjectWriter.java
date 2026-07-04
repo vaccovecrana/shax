@@ -9,6 +9,8 @@ import static io.vacco.shax.json.ShJsonValue.*;
 
 public class ShObjectWriter {
 
+  private static final int MAX_DEPTH = 64;
+
   static class ShRefMeta {
     List<Field> fields = new ArrayList<>();
     List<Method> accessors = new ArrayList<>();
@@ -90,15 +92,15 @@ public class ShObjectWriter {
     } catch (Exception e) { throw new IllegalStateException(e); }
   }
 
-  private ShJsonValue fromCollection(Object o) {
+  private ShJsonValue fromCollection(Object o, int depth) {
     if (o instanceof List) {
-      return new ShJsonArray().add(((List<?>) o).stream().map(this::fromObject));
+      return new ShJsonArray().add(((List<?>) o).stream().map(v -> fromObject(v, depth + 1)));
     } else if (o instanceof Set) {
-      return new ShJsonArray().add(((Set<?>) o).stream().map(this::fromObject));
+      return new ShJsonArray().add(((Set<?>) o).stream().map(v -> fromObject(v, depth + 1)));
     } else if (o instanceof Map) {
       var mo = new ShJsonObject();
       ((Map<?, ?>) o).forEach((k, v) -> {
-        var jv = fromObject(v);
+        var jv = fromObject(v, depth + 1);
         if (jv != null) {
           mo.set(k.toString(), jv);
         }
@@ -106,21 +108,24 @@ public class ShObjectWriter {
       return mo;
     }
     var oa = wrap(o);
-    return new ShJsonArray().add(Arrays.stream(oa).map(this::fromObject));
+    return new ShJsonArray().add(Arrays.stream(oa).map(v -> fromObject(v, depth + 1)));
   }
 
-  private ShJsonValue fromObject(Object o) {
+  private ShJsonValue fromObject(Object o, int depth) {
+    if (depth > MAX_DEPTH) {
+      throw new IllegalStateException("Max serialization depth exceeded");
+    }
     if (mark(o) == null) {
       return null;
     }
     if (isBaseType(o)) {
-      return isCollection(o) ? fromCollection(o) : fromValue(o);
+      return isCollection(o) ? fromCollection(o, depth) : fromValue(o);
     }
     var root = new ShJsonObject();
     var rawVals = rawValuesOf(o);
     for (var k : rawVals.keySet()) {
       var v = rawVals.get(k);
-      var jv = fromObject(v);
+      var jv = fromObject(v, depth + 1);
       if (jv == null) {
         if (!omitNullValues) {
           root.set(k, ShJsonLiteral.NULL);
@@ -137,7 +142,7 @@ public class ShObjectWriter {
     var wb = new ShWritingBuffer(sw);
     var w = prettyPrint ? new ShPrettyPrintWriter(wb, new char[] {' ', ' '}) : new ShJsonWriter(wb);
     try {
-      var jv = fromObject(o);
+      var jv = fromObject(o, 0);
       if (jv != null) {
         jv.write(w);
         wb.flush();

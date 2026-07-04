@@ -16,6 +16,7 @@ import static io.vacco.shax.logging.ShOption.*;
 import static io.vacco.shax.logging.ShArgument.kv;
 import static io.vacco.shax.otel.schema.OtAttribute.att;
 import static j8spec.J8Spec.*;
+import static org.junit.Assert.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
@@ -40,6 +41,7 @@ public class ShLoggerSpec {
         setLoggerSysProp("io.vacco.shax.test", ShLogLevel.TRACE);
 
         ShLogConfig c = ShLogConfig.load();
+        assertNotNull(c);
         System.out.println(c);
       });
       it("Can log JSON messages", () -> {
@@ -126,6 +128,13 @@ public class ShLoggerSpec {
           c -> c.expected(IllegalArgumentException.class),
           () -> ShLogger.withTransformer(LoggerFactory.getLogger(ShLoggerSpec.class), r -> r)
       );
+      it("Can switch log levels dynamically", () -> {
+        ShLogger.setRootLoggerLevel(ShLogLevel.OFF);
+        var log = LoggerFactory.getLogger("dynamic.logger");
+        log.info("This message must not appear");
+        ShLogger.setRootLoggerLevel(ShLogLevel.INFO);
+        log.info("This message will appear");
+      });
     });
 
     describe("OTEL Logging", () -> {
