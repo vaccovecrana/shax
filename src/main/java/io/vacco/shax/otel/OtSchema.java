@@ -11,21 +11,21 @@ public class OtSchema {
   public static final String
     Shax = "shax", Java = "java",
 
-  OtHostName      = "host.name",
+    OtHostName      = "host.name",
     OsName          = "os.name",
     OtOsType        = "os.type",
     OtOsDescription = "os.description",
     OtOsVersion     = "os.version",
     OtOsArch        = "os.arch",
 
-  OtProcessPid                = "process.pid",
+    OtProcessPid                = "process.pid",
     OtProcessExecutableName     = "process.executable.name",
     OtProcessRuntimeName        = "process.runtime.name",
     OtProcessRuntimeVersion     = "process.runtime.version",
     OtProcessRuntimeDescription = "process.runtime.description",
     OtProcessRuntimeVendor      = "process.runtime.vendor",
 
-  OtTelemetrySdkName      = "telemetry.sdk.name",
+    OtTelemetrySdkName      = "telemetry.sdk.name",
     OtTelemetrySdkVersion   = "telemetry.sdk.version",
     OtTelemetrySdkLanguage  = "telemetry.sdk.language";
 
