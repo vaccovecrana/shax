@@ -19,6 +19,8 @@ import static java.util.Objects.requireNonNull;
 @SuppressWarnings("serial")
 public class ShLogger extends LegacyAbstractLogger {
 
+  public static final int MAX_LOG_RECORD_SIZE = 8192;
+
   private static boolean initialized = false;
   private static ShLogConfig logConfig;
 
@@ -99,6 +101,15 @@ public class ShLogger extends LegacyAbstractLogger {
       }
     } else {
       var json = objectWriter.apply(r);
+      var dropped = json.length() > MAX_LOG_RECORD_SIZE;
+      if (dropped) {
+        var summary = format(
+          "Log entry dropped [logger=%s, level=%s] - payload exceeds %dKB limit",
+          this.name, shLevel, MAX_LOG_RECORD_SIZE
+        );
+        r = ShLogRecord.from(logConfig, summary, this.name, shLevel, null);
+        json = objectWriter.apply(r);
+      }
       System.err.println(json);
     }
     System.err.flush();
