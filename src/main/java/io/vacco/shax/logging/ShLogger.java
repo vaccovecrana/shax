@@ -97,8 +97,8 @@ public class ShLogger extends LegacyAbstractLogger {
       for (var kvArg : kvArgs) {
         System.err.println(objectWriter.apply(kvArg.value));
       }
-      if (tp.getThrowable() != null) {
-        tp.getThrowable().printStackTrace(System.err);
+      if (throwable != null) {
+        throwable.printStackTrace(System.err);
       }
     } else {
       var json = objectWriter.apply(r);
