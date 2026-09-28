@@ -133,6 +133,12 @@ public class ShLoggerSpec {
         ShLogger.setRootLoggerLevel(ShLogLevel.INFO);
         log.info("This message will appear");
       });
+      it("Can switch output streams", () -> {
+        ShLogger.setPrintStream(System.out);
+        var log = LoggerFactory.getLogger("stdout.logger");
+        log.info(">> This message must appear through STANDARD_OUT");
+        ShLogger.setPrintStream(System.err);
+      });
     });
 
     describe("OTEL Logging", () -> {

@@ -8,6 +8,7 @@ import org.slf4j.event.Level;
 import org.slf4j.helpers.LegacyAbstractLogger;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.io.PrintStream;
 import java.util.*;
 import java.util.function.Function;
 
@@ -23,6 +24,7 @@ public class ShLogger extends LegacyAbstractLogger {
 
   private static boolean initialized = false;
   private static ShLogConfig logConfig;
+  private static PrintStream ps = System.err;
 
   protected ShLogLevel explicitLogLevel;
   protected Function<ShLogRecord, ShLogRecord> recordTransformer;
@@ -33,8 +35,8 @@ public class ShLogger extends LegacyAbstractLogger {
     if (initialized) { return; }
     initialized = true;
     logConfig = ShLogConfig.load();
-    System.err.println(magentaBoldBright("Shax!"));
-    System.err.println(new ShObjectWriter(false, true).apply(logConfig));
+    ps.println(magentaBoldBright("Shax!"));
+    ps.println(new ShObjectWriter(false, true).apply(logConfig));
   }
 
   protected ShLogger(String name) {
@@ -88,17 +90,17 @@ public class ShLogger extends LegacyAbstractLogger {
       r = this.recordTransformer.apply(r);
     }
     if (logConfig.devMode) {
-      System.err.println(messageFormat(
+      ps.println(messageFormat(
         shLevel,
         (Long) r.get(ShField.utc_ms.name()),
         r.get(ShField.thread_name.name()).toString(),
         r.get(ShField.message.name()).toString()
       ));
       for (var kvArg : kvArgs) {
-        System.err.println(objectWriter.apply(kvArg.value));
+        ps.println(objectWriter.apply(kvArg.value));
       }
       if (throwable != null) {
-        throwable.printStackTrace(System.err);
+        throwable.printStackTrace(ps);
       }
     } else {
       var json = objectWriter.apply(r);
@@ -111,9 +113,9 @@ public class ShLogger extends LegacyAbstractLogger {
         r = ShLogRecord.from(logConfig, summary, this.name, shLevel, null);
         json = objectWriter.apply(r);
       }
-      System.err.println(json);
+      ps.println(json);
     }
-    System.err.flush();
+    ps.flush();
 
     if (OtContext.sink != null) {
       OtContext.sink.accept(OtContext.mapFrom(r));
@@ -157,6 +159,10 @@ public class ShLogger extends LegacyAbstractLogger {
     if (logConfig != null) {
       logConfig.defaultLogLevel = level != null ? level : INFO;
     }
+  }
+
+  public static void setPrintStream(PrintStream out) {
+    ShLogger.ps = Objects.requireNonNull(out);
   }
 
 }

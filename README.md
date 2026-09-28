@@ -161,7 +161,7 @@ Shax can relay log data to an OTEL compatible collector, using a subset of the [
 
 `shax` is opinionated. It will:
 
-- Output only to `stderr`, no Files or TCP/UDP forwarding. So plug your favorite log forwarding agent at the process level to capture log output.
+- Output only to `stderr` by default (but you can change this in `ShLogger`), no Files or TCP/UDP forwarding. So plug your favorite log forwarding agent at the process level to capture log output.
 - Display time:
   - In the UTC timezone only (the entire planet lives there).
   - As `ISO-8601` extended offset date-time format.

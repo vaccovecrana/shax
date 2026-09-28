@@ -1,6 +1,6 @@
 plugins { id("io.vacco.oss.gitflow") version "1.9.0" }
 
-var slf4j = "2.0.18"
+var slf4j = "2.0.20"
 
 group = "io.vacco.shax"
 version = "${slf4j}.1"
