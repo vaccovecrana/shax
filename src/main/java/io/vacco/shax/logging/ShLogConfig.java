@@ -22,6 +22,26 @@ public class ShLogConfig {
   public boolean prettyPrint  = false;
   public boolean devMode      = false;
 
+  private volatile long levelRevision;
+
+  public long levelRevision() { return levelRevision; }
+
+  void putLevel(String normalizedLoggerName, ShLogLevel level) {
+    logLevels.put(normalizedLoggerName, level);
+    levelRevision++;
+  }
+
+  void removeLevel(String normalizedLoggerName) {
+    if (logLevels.remove(normalizedLoggerName) != null) {
+      levelRevision++;
+    }
+  }
+
+  void setDefaultLevel(ShLogLevel level) {
+    defaultLogLevel = level;
+    levelRevision++;
+  }
+
   private static <T> T loadProp(ShOption o, Function<String, T> onLoad) {
     var v = getenv(o.name());
     if (v == null) v = System.getProperty(o.asSysProp());

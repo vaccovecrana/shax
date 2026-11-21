@@ -28,8 +28,18 @@ public class ShLogger extends LegacyAbstractLogger {
 
   protected Function<ShLogRecord, ShLogRecord> recordTransformer;
 
+  private static final class LevelCache {
+    final long revision;
+    final ShLogLevel level;
+    LevelCache(long revision, ShLogLevel level) {
+      this.revision = revision;
+      this.level = level;
+    }
+  }
+
   private final String normalizedName;
   private final ShObjectWriter objectWriter;
+  private volatile LevelCache levelCache;
 
   protected static synchronized void lazyInit() {
     if (initialized) { return; }
@@ -130,8 +140,13 @@ public class ShLogger extends LegacyAbstractLogger {
   }
 
   protected boolean isLevelEnabled(ShLogLevel logLevel) {
-    var effective = resolveLevel(logConfig, normalizedName);
-    return logLevel.getRawLevel() >= effective.getRawLevel();
+    var config = logConfig;
+    var cache = levelCache;
+    if (cache == null || cache.revision != config.levelRevision()) {
+      cache = new LevelCache(config.levelRevision(), resolveLevel(config, normalizedName));
+      levelCache = cache;
+    }
+    return logLevel.getRawLevel() >= cache.level.getRawLevel();
   }
 
   public static ShLogLevel getLoggerLevel(String loggerName) {
@@ -144,20 +159,20 @@ public class ShLogger extends LegacyAbstractLogger {
     requireNonNull(loggerName);
     requireNonNull(level);
     lazyInit();
-    logConfig.logLevels.put(ShLogConfig.normalize(loggerName), level);
+    logConfig.putLevel(ShLogConfig.normalize(loggerName), level);
   }
 
   public static void clearLoggerLevel(String loggerName) {
     requireNonNull(loggerName);
     lazyInit();
-    logConfig.logLevels.remove(ShLogConfig.normalize(loggerName));
+    logConfig.removeLevel(ShLogConfig.normalize(loggerName));
   }
 
   static void setLoggerLevelIfInitialized(String loggerName, ShLogLevel level) {
     requireNonNull(loggerName);
     requireNonNull(level);
     if (initialized && logConfig != null) {
-      logConfig.logLevels.put(ShLogConfig.normalize(loggerName), level);
+      logConfig.putLevel(ShLogConfig.normalize(loggerName), level);
     }
   }
 
@@ -191,7 +206,7 @@ public class ShLogger extends LegacyAbstractLogger {
   public static void setRootLoggerLevel(ShLogLevel level) {
     lazyInit();
     if (logConfig != null) {
-      logConfig.defaultLogLevel = level != null ? level : INFO;
+      logConfig.setDefaultLevel(level != null ? level : INFO);
     }
   }
 

@@ -180,6 +180,22 @@ public class ShLoggerSpec {
         ShLogger.clearLoggerLevel("runtime.mixedcase");
         assertFalse(log.isDebugEnabled());
       });
+      it("Invalidates the cached level after repeated checks", () -> {
+        ShLogger.setRootLoggerLevel(ShLogLevel.INFO);
+        var log = LoggerFactory.getLogger("runtime.cached");
+
+        for (var i = 0; i < 1000; i++) {
+          assertFalse(log.isDebugEnabled());
+        }
+        ShLogger.setLoggerLevel("runtime.cached", ShLogLevel.DEBUG);
+        for (var i = 0; i < 1000; i++) {
+          assertTrue(log.isDebugEnabled());
+        }
+        ShLogger.clearLoggerLevel("runtime.cached");
+        for (var i = 0; i < 1000; i++) {
+          assertFalse(log.isDebugEnabled());
+        }
+      });
       it("Can switch output streams", () -> {
         ShLogger.setPrintStream(System.out);
         var log = LoggerFactory.getLogger("stdout.logger");
