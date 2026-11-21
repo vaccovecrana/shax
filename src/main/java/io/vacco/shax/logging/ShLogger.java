@@ -141,9 +141,10 @@ public class ShLogger extends LegacyAbstractLogger {
 
   protected boolean isLevelEnabled(ShLogLevel logLevel) {
     var config = logConfig;
+    var revision = config.levelRevision();
     var cache = levelCache;
-    if (cache == null || cache.revision != config.levelRevision()) {
-      cache = new LevelCache(config.levelRevision(), resolveLevel(config, normalizedName));
+    if (cache == null || cache.revision != revision) {
+      cache = new LevelCache(revision, resolveLevel(config, normalizedName));
       levelCache = cache;
     }
     return logLevel.getRawLevel() >= cache.level.getRawLevel();
