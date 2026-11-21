@@ -133,6 +133,69 @@ public class ShLoggerSpec {
         ShLogger.setRootLoggerLevel(ShLogLevel.INFO);
         log.info("This message will appear");
       });
+      it("Can override specific logger levels at runtime", () -> {
+        ShLogger.setRootLoggerLevel(ShLogLevel.INFO);
+        var parent = LoggerFactory.getLogger("runtime.override");
+        var child  = LoggerFactory.getLogger("runtime.override.child");
+        var other  = LoggerFactory.getLogger("runtime.other");
+
+        assertFalse(parent.isDebugEnabled());
+        assertFalse(child.isDebugEnabled());
+        assertFalse(other.isDebugEnabled());
+
+        ShLogger.setLoggerLevel("runtime.override", ShLogLevel.DEBUG);
+        assertTrue(parent.isDebugEnabled());
+        assertTrue(child.isDebugEnabled());
+        assertFalse(other.isDebugEnabled());
+
+        ShLogger.setLoggerLevel("runtime.override.child", ShLogLevel.ERROR);
+        assertTrue(parent.isDebugEnabled());
+        assertFalse(child.isDebugEnabled());
+        assertTrue(child.isErrorEnabled());
+
+        ShLogger.clearLoggerLevel("runtime.override.child");
+        assertTrue(child.isDebugEnabled());
+
+        ShLogger.clearLoggerLevel("runtime.override");
+        assertFalse(parent.isDebugEnabled());
+        assertEquals(ShLogLevel.INFO, ShLogger.getLoggerLevel("runtime.override"));
+      });
+      it("Applies programmatic logger overrides after initialization", () -> {
+        var log = LoggerFactory.getLogger("runtime.sysprop");
+        assertFalse(log.isTraceEnabled());
+        ShLogger.setRootLoggerLevel(ShLogLevel.INFO);
+
+        setLoggerSysProp("runtime.sysprop", ShLogLevel.TRACE);
+        assertTrue(log.isTraceEnabled());
+
+        System.clearProperty(IO_VACCO_SHAX_LOGGER.asSysProp() + ".runtime.sysprop");
+        ShLogger.clearLoggerLevel("runtime.sysprop");
+        assertFalse(log.isTraceEnabled());
+      });
+      it("Normalizes logger names when matching overrides", () -> {
+        var log = LoggerFactory.getLogger("runtime.MixedCase");
+        ShLogger.setLoggerLevel("RUNTIME.MIXEDCASE", ShLogLevel.DEBUG);
+        assertTrue(log.isDebugEnabled());
+        assertEquals(ShLogLevel.DEBUG, ShLogger.getLoggerLevel("Runtime.MixedCase"));
+        ShLogger.clearLoggerLevel("runtime.mixedcase");
+        assertFalse(log.isDebugEnabled());
+      });
+      it("Invalidates the cached level after repeated checks", () -> {
+        ShLogger.setRootLoggerLevel(ShLogLevel.INFO);
+        var log = LoggerFactory.getLogger("runtime.cached");
+
+        for (var i = 0; i < 1000; i++) {
+          assertFalse(log.isDebugEnabled());
+        }
+        ShLogger.setLoggerLevel("runtime.cached", ShLogLevel.DEBUG);
+        for (var i = 0; i < 1000; i++) {
+          assertTrue(log.isDebugEnabled());
+        }
+        ShLogger.clearLoggerLevel("runtime.cached");
+        for (var i = 0; i < 1000; i++) {
+          assertFalse(log.isDebugEnabled());
+        }
+      });
       it("Can switch output streams", () -> {
         ShLogger.setPrintStream(System.out);
         var log = LoggerFactory.getLogger("stdout.logger");
