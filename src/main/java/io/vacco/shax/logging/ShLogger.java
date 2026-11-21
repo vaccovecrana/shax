@@ -22,36 +22,27 @@ public class ShLogger extends LegacyAbstractLogger {
 
   public static final int MAX_LOG_RECORD_SIZE = 8192;
 
-  private static boolean initialized = false;
-  private static ShLogConfig logConfig;
+  private static volatile boolean initialized = false;
+  private static volatile ShLogConfig logConfig;
   private static PrintStream ps = System.err;
 
-  protected ShLogLevel explicitLogLevel;
   protected Function<ShLogRecord, ShLogRecord> recordTransformer;
 
+  private final String normalizedName;
   private final ShObjectWriter objectWriter;
 
-  protected static void lazyInit() {
+  protected static synchronized void lazyInit() {
     if (initialized) { return; }
-    initialized = true;
     logConfig = ShLogConfig.load();
     ps.println(magentaBoldBright("Shax!"));
     ps.println(new ShObjectWriter(false, true).apply(logConfig));
+    initialized = true;
   }
 
   protected ShLogger(String name) {
+    lazyInit();
     this.name = name;
-    var tempName = name;
-    var level = (ShLogLevel) null;
-    int indexOfLastDot = tempName.length();
-
-    while ((level == null) && (indexOfLastDot > -1)) {
-      tempName = tempName.substring(0, indexOfLastDot);
-      level = logConfig.logLevels.get(tempName);
-      indexOfLastDot = tempName.lastIndexOf(".");
-    }
-
-    this.explicitLogLevel = level;
+    this.normalizedName = ShLogConfig.normalize(name);
     this.objectWriter = new ShObjectWriter(true, logConfig.prettyPrint);
   }
 
@@ -122,9 +113,52 @@ public class ShLogger extends LegacyAbstractLogger {
     }
   }
 
+  private static ShLogLevel resolveLevel(ShLogConfig config, String normalizedLoggerName) {
+    var candidate = normalizedLoggerName;
+    while (true) {
+      var level = config.logLevels.get(candidate);
+      if (level != null) {
+        return level;
+      }
+      var indexOfLastDot = candidate.lastIndexOf(".");
+      if (indexOfLastDot < 0) {
+        break;
+      }
+      candidate = candidate.substring(0, indexOfLastDot);
+    }
+    return config.defaultLogLevel != null ? config.defaultLogLevel : INFO;
+  }
+
   protected boolean isLevelEnabled(ShLogLevel logLevel) {
-    var effective = explicitLogLevel != null ? explicitLogLevel : logConfig.defaultLogLevel;
+    var effective = resolveLevel(logConfig, normalizedName);
     return logLevel.getRawLevel() >= effective.getRawLevel();
+  }
+
+  public static ShLogLevel getLoggerLevel(String loggerName) {
+    requireNonNull(loggerName);
+    lazyInit();
+    return resolveLevel(logConfig, ShLogConfig.normalize(loggerName));
+  }
+
+  public static void setLoggerLevel(String loggerName, ShLogLevel level) {
+    requireNonNull(loggerName);
+    requireNonNull(level);
+    lazyInit();
+    logConfig.logLevels.put(ShLogConfig.normalize(loggerName), level);
+  }
+
+  public static void clearLoggerLevel(String loggerName) {
+    requireNonNull(loggerName);
+    lazyInit();
+    logConfig.logLevels.remove(ShLogConfig.normalize(loggerName));
+  }
+
+  static void setLoggerLevelIfInitialized(String loggerName, ShLogLevel level) {
+    requireNonNull(loggerName);
+    requireNonNull(level);
+    if (initialized && logConfig != null) {
+      logConfig.logLevels.put(ShLogConfig.normalize(loggerName), level);
+    }
   }
 
   public static Logger withTransformer(Logger log, Function<ShLogRecord, ShLogRecord> fn) {

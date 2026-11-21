@@ -145,6 +145,22 @@ Pass in the following `Environment` or `System`  properties to configure:
 - `IO_VACCO_SHAX_PRETTYPRINT` - `true` to output formatted JSON, `false` to output a single line. Default `false`.
 - `IO_VACCO_SHAX_LOGGER_X_Y_Z` - (multiple times with different values) to set individual logger namespace levels.
 
+### Runtime logger level overrides
+
+Individual logger levels can also be changed after startup:
+
+```java
+ShLogger.setLoggerLevel("com.example.noisy", ShLogLevel.DEBUG);
+ShLogger.getLoggerLevel("com.example.noisy");   // DEBUG
+ShLogger.clearLoggerLevel("com.example.noisy");  // back to the root level
+```
+
+Levels are resolved from the most specific configured logger name up through its
+parents (`com.example.noisy.svc` → `com.example.noisy` → `com.example`), then the root
+level. Logger names are matched case-insensitively. `ShOption.setLoggerSysProp(...)`
+applies immediately when logging has already been initialized, and is still honored
+when set before startup.
+
 ## OpenTelemetry integration
 
 Shax can relay log data to an OTEL compatible collector, using a subset of the [OTEL reference properties](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/).
